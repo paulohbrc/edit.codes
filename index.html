@@ -1,0 +1,1027 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <title>Markdown Pro · edit.codes/md</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!--
+    Markdown Pro — international, client-side Markdown editor (edit.codes/md).
+    Philosophy: "one .md, two audiences" — the file stays native Markdown the AI
+    can read, while THIS editor turns specific symbols into rich functions in the
+    preview. The transformation is editor-exclusive (not portable to GitHub etc.).
+
+    100% client-side. Nothing leaves the machine. `marked` is vendored locally
+    (vendor/marked.min.js) — the genuine downloaded file, never hand-written.
+  -->
+  <script src="vendor/marked.min.js"></script>
+
+  <style>
+    /* ---------------------------------------------------------------------
+       THEME TOKENS — all colors go through CSS variables so light/dark is
+       a single attribute switch on <html data-theme>.
+    --------------------------------------------------------------------- */
+    :root {
+      --bg: #f4f5f7;            --fg: #111827;
+      --header-bg: #111827;     --header-fg: #f9fafb;
+      --toolbar-bg: #0f172a;    --toolbar-btn: #1f2937;  --toolbar-btn-hover: #374151;
+      --toolbar-fg: #e5e7eb;    --group-fg: #9ca3af;
+      --pane-head-bg: #e5e7eb;  --pane-head-fg: #111827;  --pane-border: #d1d5db;
+      --editor-bg: #f9fafb;     --editor-fg: #111827;
+      --preview-area: #e5e7eb;  --paper-bg: #ffffff;      --paper-fg: #111827;
+      --muted: #4b5563;         --rule: #e5e7eb;
+      --inline-code-bg: #f3f4f6;--inline-code-fg: #db2777;
+      --accent: #2563eb;        --accent-fg: #ffffff;
+      --msg-bg: #059669;        --msg-border: #047857;    --msg-fg: #ffffff;
+      --code-head-bg: #1f2937;  --code-body-bg: #0b1120;  --code-body-fg: #e5e7eb;
+      --card-bg: #f9fafb;       --card-border: #e5e7eb;   --link: #2563eb;
+    }
+    html[data-theme="dark"] {
+      --bg: #0b1120;            --fg: #e5e7eb;
+      --header-bg: #060912;     --header-fg: #f9fafb;
+      --toolbar-bg: #0a0f1a;    --toolbar-btn: #1f2937;  --toolbar-btn-hover: #374151;
+      --toolbar-fg: #e5e7eb;    --group-fg: #9ca3af;
+      --pane-head-bg: #111827;  --pane-head-fg: #e5e7eb;  --pane-border: #1f2937;
+      --editor-bg: #0d1424;     --editor-fg: #e5e7eb;
+      --preview-area: #060912;  --paper-bg: #0f172a;      --paper-fg: #e5e7eb;
+      --muted: #9ca3af;         --rule: #1f2937;
+      --inline-code-bg: #1f2937;--inline-code-fg: #f9a8d4;
+      --accent: #2563eb;        --accent-fg: #ffffff;
+      --msg-bg: #065f46;        --msg-border: #10b981;    --msg-fg: #ecfdf5;
+      --code-head-bg: #111827;  --code-body-bg: #060912;  --code-body-fg: #e5e7eb;
+      --card-bg: #111827;       --card-border: #1f2937;   --link: #60a5fa;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: system-ui, -apple-system, sans-serif;
+      height: 100vh; display: flex; flex-direction: column;
+      background: var(--bg); color: var(--fg);
+    }
+
+    header {
+      padding: 10px 16px; background: var(--header-bg); color: var(--header-fg);
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    }
+    header h1 { font-size: 16px; margin: 0; font-weight: 600; white-space: nowrap; }
+    .tagline { font-size: 12px; opacity: 0.8; flex: 1; min-width: 0;
+               overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .head-controls { display: flex; gap: 8px; align-items: center; }
+    .head-controls select, .head-controls button {
+      background: var(--toolbar-btn); color: var(--toolbar-fg); border: none;
+      border-radius: 4px; padding: 5px 10px; font-size: 13px; cursor: pointer;
+    }
+    .counts { font-size: 11px; color: var(--group-fg); white-space: nowrap; }
+
+    /* Optional, opt-in features bar (lazy-loaded — base stays light). */
+    .feature-bar {
+      display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+      padding: 6px 16px; background: var(--toolbar-bg); color: var(--group-fg);
+      border-bottom: 1px solid var(--pane-border); font-size: 12px;
+    }
+    .feature-bar label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 16px;
+      background: var(--toolbar-bg); border-bottom: 1px solid var(--pane-border); align-items: center;
+    }
+    .toolbar button {
+      border: none; padding: 5px 10px; border-radius: 4px;
+      background: var(--toolbar-btn); color: var(--toolbar-fg); font-size: 13px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s;
+    }
+    .toolbar button:hover { background: var(--toolbar-btn-hover); }
+    .toolbar .group-label {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--group-fg); margin-left: 8px; margin-right: 4px;
+    }
+    .toolbar .spacer { margin-left: auto; }
+    .toolbar button.primary { background: #16a34a; color: #ecfdf5; }
+    .toolbar button.primary:hover { background: #15803d; }
+    .toolbar button.msg { background: #059669; color: #fff; }
+
+    /* Layout */
+    .main { flex: 1; display: flex; min-height: 0; }
+    .pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .pane-header {
+      padding: 8px 12px; font-size: 13px; font-weight: 600;
+      background: var(--pane-head-bg); color: var(--pane-head-fg); border-bottom: 1px solid var(--pane-border);
+    }
+    .pane-body { flex: 1; display: flex; min-height: 0; overflow: hidden; background: var(--editor-bg); }
+
+    textarea {
+      width: 100%; border: none; resize: none; padding: 16px;
+      font-family: ui-monospace, monospace; font-size: 14px; line-height: 1.6;
+      outline: none; background: var(--editor-bg); color: var(--editor-fg);
+    }
+
+    #preview-container { width: 100%; padding: 24px; overflow: auto; background: var(--preview-area); scroll-behavior: smooth; scrollbar-gutter: stable; display: block; }
+    #preview {
+      margin: 0 auto; max-width: 850px; padding: 32px 40px; background: var(--paper-bg);
+      border-radius: 6px; box-shadow: 0 0 0 1px rgba(15,23,42,0.08), 0 6px 18px rgba(15,23,42,0.12);
+      color: var(--paper-fg); overflow-wrap: break-word; word-break: break-word;
+    }
+
+    /* Native markdown elements */
+    #preview p { margin: 0.5em 0; line-height: 1.6; font-size: 15px; }
+    #preview ul, #preview ol { padding-left: 1.5rem; margin: 0.5em 0; }
+    #preview li { margin: 0.3em 0; }
+    #preview code { background: var(--inline-code-bg); padding: 3px 6px; border-radius: 4px; font-size: 13px; color: var(--inline-code-fg); }
+    #preview hr { border: none; border-top: 1px solid var(--rule); margin: 1.5em 0; }
+    #preview blockquote { border-left: 4px solid var(--pane-border); padding-left: 16px; color: var(--muted); margin: 1em 0; font-style: italic; }
+    #preview table { border-collapse: collapse; margin: 1em 0; width: 100%; }
+    #preview th, #preview td { border: 1px solid var(--pane-border); padding: 6px 10px; text-align: left; }
+    #preview th { background: var(--inline-code-bg); }
+    #preview a { color: var(--link); }
+    #preview img { max-width: 100%; }
+    #preview input[type="checkbox"] { margin-right: 6px; }
+
+    /* Message block (custom symbol :::message) */
+    #preview .edc-message {
+      margin: 1.5em 0 1.5em 12%; padding: 14px 22px;
+      background: var(--msg-bg); border-right: 6px solid var(--msg-border);
+      border-radius: 8px 0 0 8px; color: var(--msg-fg);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    #preview .edc-message :first-child { margin-top: 0; }
+    #preview .edc-message :last-child { margin-bottom: 0; }
+    #preview .edc-message a { color: #d1fae5; }
+
+    /* Section headers + copy-section button */
+    .section-header {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-top: 1.5em; margin-bottom: 0.6em; line-height: 1.2; font-weight: 700; scroll-margin-top: 20px;
+    }
+    .section-header:hover .copy-section-btn { opacity: 1; }
+    .section-header h1 { font-size: 28px; border-bottom: 1px solid var(--rule); padding-bottom: 0.3em; width: 100%; margin: 0; }
+    .section-header h2 { font-size: 22px; margin: 0; }
+    .section-header h3 { font-size: 18px; margin: 0; }
+    .copy-section-btn {
+      opacity: 0; transition: opacity 0.2s; background: var(--inline-code-bg); border: 1px solid var(--pane-border);
+      border-radius: 4px; padding: 4px 8px; font-size: 11px; color: var(--muted); cursor: pointer; margin-left: 12px; white-space: nowrap;
+    }
+
+    /* Code blocks */
+    .code-wrapper { margin: 1em 0; border-radius: 6px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .code-header { display: flex; justify-content: space-between; align-items: center; background: var(--code-head-bg); padding: 6px 12px; border-bottom: 1px solid var(--pane-border); }
+    .code-lang { color: var(--group-fg); font-size: 11px; text-transform: uppercase; font-weight: 600; }
+    .copy-code-btn { background: transparent; border: 1px solid #4b5563; border-radius: 4px; padding: 3px 8px; font-size: 11px; color: #d1d5db; cursor: pointer; }
+    .copy-code-btn:hover { background: #374151; color: #fff; }
+    .code-wrapper pre { background: var(--code-body-bg); color: var(--code-body-fg); padding: 16px; margin: 0; overflow-x: auto; font-size: 13.5px; }
+    /* #preview prefix raises specificity above "#preview code" so block code isn't pink. */
+    #preview .code-wrapper pre code { background: transparent; padding: 0; color: inherit; }
+
+    /* Table of contents */
+    .toc-container { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 16px 20px; margin-bottom: 2em; }
+    .toc-title { font-size: 14px; font-weight: 700; margin: 0 0 12px 0; text-transform: uppercase; }
+    .toc-list { list-style: none; padding-left: 0; margin: 0; }
+    .toc-list li { margin-bottom: 6px; }
+    .toc-list a { text-decoration: none; color: var(--link); font-size: 14px; }
+    .toc-list a:hover { text-decoration: underline; }
+    .toc-level-2 { padding-left: 16px; } .toc-level-3 { padding-left: 32px; }
+    .toc-level-4, .toc-level-5, .toc-level-6 { padding-left: 48px; }
+
+    /* Density themes (typography only — independent from light/dark) */
+    #preview.density-reading { font-size: 16px; font-family: Georgia, serif; }
+    #preview.density-compact { font-size: 13.5px; padding: 24px; }
+
+    footer { font-size: 12.5px; text-align: center; padding: 8px 12px; color: var(--toolbar-fg); background: var(--header-bg); }
+
+    /* Modal */
+    #msg-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-content { background: var(--paper-bg); color: var(--paper-fg); padding: 24px; border-radius: 8px; width: 500px; max-width: 90%; }
+    .modal-content textarea { height: 150px; width: 100%; border: 1px solid var(--pane-border); padding: 12px; margin-bottom: 16px; background: var(--editor-bg); color: var(--editor-fg); }
+
+    /* Toast */
+    #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #111827; color: #fff; padding: 10px 18px; border-radius: 6px; font-size: 13px; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 2000; }
+    #toast.show { opacity: 1; }
+
+    /* Author byline + source link */
+    .byline { color: var(--accent); text-decoration: none; font-size: 12px; opacity: 0.85; white-space: nowrap; }
+    .byline:hover { text-decoration: underline; opacity: 1; }
+    .source-link { color: var(--link); text-decoration: none; font-weight: 600; }
+    .source-link:hover { text-decoration: underline; filter: brightness(1.12); }
+
+    /* Resizable splitter between panes */
+    .splitter { flex: 0 0 6px; cursor: col-resize; background: var(--pane-border); transition: background 0.15s; }
+    .splitter:hover, .splitter.dragging { background: var(--accent); }
+
+    /* Preview pane header with the fullscreen button */
+    .pane-header-flex { display: flex; justify-content: space-between; align-items: center; }
+    .pane-btn { background: transparent; border: 1px solid var(--pane-border); border-radius: 4px; color: inherit; cursor: pointer; font-size: 13px; line-height: 1; padding: 3px 8px; }
+    .pane-btn:hover { background: var(--pane-border); }
+    /* Prominent fullscreen button + 3-blink attention on load */
+    .pane-btn.fs { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; display: inline-flex; gap: 5px; align-items: center; }
+    .pane-btn.fs:hover { background: var(--accent); filter: brightness(1.12); }
+    @keyframes fsblink { 0%, 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); } 50% { box-shadow: 0 0 0 5px rgba(37,99,235,0.55); transform: scale(1.06); } }
+    .pane-btn.fs.intro { animation: fsblink 0.55s ease-in-out 3; }
+
+    /* Subtle drop hint in the editor header + drag overlay */
+    .pane-hint { font-weight: 400; font-size: 11px; opacity: 0.55; }
+    #editor-pane { position: relative; }
+    #drop-zone { position: absolute; inset: 8px; display: none; align-items: center; justify-content: center; text-align: center; padding: 20px; z-index: 60; pointer-events: none; border: 3px dashed var(--accent); border-radius: 8px; background: rgba(37,99,235,0.10); color: var(--accent); font-weight: 700; font-size: 16px; }
+    #drop-zone.show { display: flex; }
+
+    /* Fullscreen reading overlay (floating document) */
+    #fullscreen-overlay { position: fixed; inset: 0; z-index: 1500; display: none; overflow: auto; padding: 40px 16px; background: rgba(0,0,0,0.65); }
+    #fullscreen-overlay.open { display: block; }
+    #fullscreen-overlay #preview { margin: 0 auto; }
+    .fs-close { position: fixed; top: 16px; right: 20px; z-index: 1600; background: #111827; color: #fff; border: none; border-radius: 6px; width: 36px; height: 36px; font-size: 16px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .fs-close:hover { background: #374151; }
+
+    /* Print — only the paper survives */
+    @media print {
+      @page { size: A4; margin: 20mm; }
+      html, body { margin: 0; background: #fff; height: auto !important; display: block !important; overflow: visible !important; color: #000; }
+      header, .feature-bar, .toolbar, .pane:first-child, .pane-header, footer { display: none !important; }
+      .main, .pane, .pane-body, #preview-container { display: block !important; height: auto !important; overflow: visible !important; padding: 0 !important; margin: 0 !important; background: #fff !important; }
+      #preview { box-shadow: none; border-radius: 0; max-width: none; width: 100%; margin: 0; padding: 0; background: #fff; color: #000; }
+      .copy-section-btn, .copy-code-btn { display: none !important; }
+      .code-wrapper pre { background: #fff; color: #000; border: 1px solid #d1d5db; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 data-i18n="appTitle">Markdown Pro</h1>
+    <a class="byline" href="https://x.com/paulohbrc" target="_blank" rel="noopener noreferrer" title="@paulohbrc on X">@paulohbrc</a>
+    <span class="tagline" data-i18n="tagline">Reorganize what the AI handed you — the file stays a .md the AI can re-read.</span>
+    <div class="head-controls">
+      <span class="counts" id="counts"></span>
+      <select id="langSelect" data-i18n-title="langTitle" title="Language">
+        <option value="en">English</option>
+        <option value="pt">Português</option>
+        <option value="es">Español</option>
+      </select>
+      <button type="button" data-action="theme-toggle" data-i18n-title="themeTitle" title="Toggle theme">🌓</button>
+    </div>
+  </header>
+
+  <!-- Optional features: nothing is loaded until the user opts in (keeps the base light). -->
+  <div class="feature-bar">
+    <span data-i18n="optional">Optional:</span>
+    <label><input type="checkbox" id="feat-highlight" data-feature="highlight"> <span data-i18n="featHighlight">Code highlighting</span></label>
+    <label><input type="checkbox" id="feat-math" data-feature="math"> <span data-i18n="featMath">Math (KaTeX)</span></label>
+    <label><input type="checkbox" id="feat-diagrams" data-feature="diagrams"> <span data-i18n="featDiagrams">Diagrams (Mermaid)</span></label>
+  </div>
+
+  <div class="toolbar">
+    <span class="group-label" data-i18n="grpHistory">History</span>
+    <button type="button" data-action="undo" data-i18n-title="undo" title="Undo (Ctrl+Z)">↶</button>
+    <button type="button" data-action="redo" data-i18n-title="redo" title="Redo (Ctrl+Y)">↷</button>
+
+    <span class="group-label" data-i18n="grpText">Text</span>
+    <button type="button" data-action="bold" data-i18n-title="bold" title="Bold"><b>B</b></button>
+    <button type="button" data-action="italic" data-i18n-title="italic" title="Italic"><i>I</i></button>
+
+    <span class="group-label" data-i18n="grpStructure">Structure</span>
+    <button type="button" data-action="h1" title="H1">H1</button>
+    <button type="button" data-action="h2" title="H2">H2</button>
+    <button type="button" data-action="list" data-i18n-title="list" title="List">• List</button>
+    <button type="button" data-action="code" title="Code block"><code>{ }</code></button>
+    <button type="button" data-action="hr" title="Horizontal rule">───</button>
+    <button type="button" data-action="link" data-i18n-title="link" title="Link">🔗</button>
+
+    <span class="group-label" data-i18n="grpMessage">Message</span>
+    <button type="button" class="msg" data-action="paste-msg" data-i18n="pasteMsg">💬 Paste message</button>
+    <button type="button" data-action="wrap-msg" data-i18n-title="wrapMsg" title="Wrap selection as message">&lt;&gt;</button>
+
+    <span class="spacer"></span>
+    <select id="densitySelect" data-i18n-title="densityTitle" title="Reading density"
+            style="border:none;padding:5px 10px;border-radius:4px;background:var(--toolbar-btn);color:var(--toolbar-fg);font-size:13px;cursor:pointer;">
+      <option value="default" data-i18n="densDefault">Default</option>
+      <option value="reading" data-i18n="densReading">Reading</option>
+      <option value="compact" data-i18n="densCompact">Compact</option>
+    </select>
+    <button type="button" class="primary msg" data-action="copy-md" data-i18n="copyMd">📋 Copy MD</button>
+    <button type="button" class="primary" style="background:#2563eb;color:#fff;" data-action="save-md" data-i18n="saveMd">💾 Save .md</button>
+    <button type="button" class="primary" data-action="pdf" data-i18n="pdf">🖨️ PDF</button>
+  </div>
+
+  <div class="main">
+    <div class="pane" id="editor-pane">
+      <div class="pane-header pane-header-flex">
+        <span data-i18n="paneEditor">Editor</span>
+        <span class="pane-hint" data-i18n="dropHint">drop a .md file</span>
+      </div>
+      <div class="pane-body"><textarea id="editor" spellcheck="false"></textarea></div>
+      <div id="drop-zone"><span data-i18n="dropHere">Drop your .md here</span></div>
+    </div>
+    <div class="splitter" id="splitter" title="Drag to resize"></div>
+    <div class="pane">
+      <div class="pane-header pane-header-flex">
+        <span data-i18n="panePreview">Preview</span>
+        <button type="button" class="pane-btn fs intro" data-action="fullscreen" data-i18n-title="fullscreen" title="Fullscreen"><span aria-hidden="true">⛶</span> <span data-i18n="fullscreen">Fullscreen</span></button>
+      </div>
+      <div class="pane-body" id="preview-container"><div id="preview"></div></div>
+    </div>
+  </div>
+
+  <footer>
+    <span data-i18n="footer">Processed locally in your browser. Nothing is sent to any server.</span>
+    <span style="opacity:.4;"> · </span>
+    <a class="source-link" href="https://web3.archi" target="_blank" rel="noopener noreferrer" data-i18n="source">Open source</a>
+  </footer>
+
+  <!-- Fullscreen reading overlay: the live #preview is moved in here, then back on close. -->
+  <div id="fullscreen-overlay">
+    <button type="button" class="fs-close" data-action="fullscreen-close" title="Close (Esc)">✕</button>
+  </div>
+
+  <div id="msg-modal">
+    <div class="modal-content">
+      <h3 style="margin-top:0;" data-i18n="modalTitle">Add message</h3>
+      <p style="font-size:13px;color:var(--muted);" data-i18n="modalHint">The text is wrapped in a :::message block.</p>
+      <textarea id="msg-textarea"></textarea>
+      <div style="display:flex;justify-content:flex-end;gap:8px;">
+        <button data-action="modal-cancel" style="padding:8px 16px;cursor:pointer;" data-i18n="cancel">Cancel</button>
+        <button data-action="modal-add" style="padding:8px 16px;background:#059669;color:#fff;border:none;cursor:pointer;" data-i18n="add">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+  "use strict";
+  (function () {
+    /* =====================================================================
+       CONFIG — single source of design knobs. Kept as one object so the
+       future browser extension can reuse RENDERER with the same settings.
+    ===================================================================== */
+    const CONFIG = {
+      storageKeys: { content: "edc_content", lang: "edc_lang", theme: "edc_theme", density: "edc_density" },
+      defaultLang: "en",
+      markedOptions: { breaks: true, gfm: true },
+      // Stable, unmistakable anchors for the embedded copy button (see IO.save).
+      copyButtonOpen: "<!-- edc:copy-button v1 -->",
+      copyButtonClose: "<!-- /edc:copy-button -->"
+    };
+
+    /* =====================================================================
+       I18N — every UI string lives here. No hard-coded UI text in markup.
+    ===================================================================== */
+    const I18N = {
+      en: {
+        appTitle: "Markdown Pro", tagline: "Reorganize what the AI handed you — the file stays a .md the AI can re-read.",
+        langTitle: "Language", themeTitle: "Toggle theme", optional: "Optional:",
+        featHighlight: "Code highlighting", featMath: "Math (KaTeX)", featDiagrams: "Diagrams (Mermaid)",
+        grpHistory: "History", undo: "Undo (Ctrl+Z)", redo: "Redo (Ctrl+Y)",
+        grpText: "Text", bold: "Bold", italic: "Italic",
+        grpStructure: "Structure", list: "List", link: "Link (Ctrl+K)", grpMessage: "Message",
+        pasteMsg: "💬 Paste message", wrapMsg: "Wrap selection as message",
+        densityTitle: "Reading density", densDefault: "Default", densReading: "Reading", densCompact: "Compact",
+        copyMd: "📋 Copy MD", saveMd: "💾 Save .md", pdf: "🖨️ PDF",
+        paneEditor: "Editor", panePreview: "Preview", fullscreen: "Fullscreen", source: "↓ Open source — download & run locally", dropHint: "drop a .md here", dropHere: "Drop your .md to load it",
+        footer: "Nothing you type is sent to our server.",
+        modalTitle: "Add message", modalHint: "The text is wrapped in a :::message block.",
+        cancel: "Cancel", add: "Add",
+        words: "words", chars: "chars", toc: "Contents",
+        copied: "Copied!", selectToWrap: "Select some text to wrap as a message.",
+        featLoadFail: "Couldn't load this feature. Add the file under vendor/ to enable it offline.",
+        markedMissing: "marked.min.js not found in vendor/. Run the download command from SPEC.md.",
+        demo: "# Markdown Pro — how to use\n\nPaste here the **.md** the AI gave you — or **drag the .md file** onto this area. On the right you see it fully formatted, with the visual features turned on.\n\n## What is different here\n\nThis editor turns certain .md symbols into **visual functions**, just for you to see: tables, code blocks with a copy button, an automatic table of contents, and the green message box. But the file **stays a real .md** — when you send it back to the AI, it reads the plain text normally. The visuals are for humans; the content stays useful for the AI afterwards.\n\n> Here you only **see** what the AI wrote. Any HTML or script you paste **shows up as text** — nothing runs and nothing disappears. Only the editor's own visual features are applied. And nothing you type leaves your computer.\n\n:::message\nThe green box is for you to **mark a message you sent yourself** to the AI, keeping it apart from the rest of the chat.\n:::\n\n## Save and resume later\n\n1. Click **💾 Save .md** to download the clean file.\n2. To continue, **drag the .md back here** (or open the file and copy its content). The text appears without sending the file from your computer anywhere.\n\n```js\n// code blocks get their own copy button\nexample()\n```\n\n---\n\n*Use this space to paste your own AI-generated code. Be careful with code from others.*\n"
+      },
+      pt: {
+        appTitle: "Markdown Pro", tagline: "Reorganize o que a IA te entregou — o arquivo continua um .md que a IA relê.",
+        langTitle: "Idioma", themeTitle: "Alternar tema", optional: "Opcional:",
+        featHighlight: "Realce de código", featMath: "Fórmulas (KaTeX)", featDiagrams: "Diagramas (Mermaid)",
+        grpHistory: "Histórico", undo: "Desfazer (Ctrl+Z)", redo: "Refazer (Ctrl+Y)",
+        grpText: "Texto", bold: "Negrito", italic: "Itálico",
+        grpStructure: "Estrutura", list: "Lista", link: "Link (Ctrl+K)", grpMessage: "Mensagem",
+        pasteMsg: "💬 Colar mensagem", wrapMsg: "Transformar seleção em mensagem",
+        densityTitle: "Densidade de leitura", densDefault: "Padrão", densReading: "Leitura", densCompact: "Compacto",
+        copyMd: "📋 Copiar MD", saveMd: "💾 Guardar .md", pdf: "🖨️ PDF",
+        paneEditor: "Editor", panePreview: "Visualização", fullscreen: "Tela cheia", source: "↓ Código aberto — baixe e rode localmente", dropHint: "arraste um .md aqui", dropHere: "Solte o .md para carregar",
+        footer: "Nada que você digitar é enviado ao nosso servidor.",
+        modalTitle: "Adicionar mensagem", modalHint: "O texto é agrupado num bloco :::message.",
+        cancel: "Cancelar", add: "Adicionar",
+        words: "palavras", chars: "caracteres", toc: "Índice",
+        copied: "Copiado!", selectToWrap: "Selecione um texto para transformar em mensagem.",
+        featLoadFail: "Não foi possível carregar este recurso. Adicione o arquivo em vendor/ para ativá-lo offline.",
+        markedMissing: "marked.min.js não encontrado em vendor/. Rode o comando de download do SPEC.md.",
+        demo: "# Markdown Pro — como usar\n\nCole aqui o **.md** que a IA te entregou — ou **arraste o arquivo .md** para esta área. À direita você vê tudo já formatado, com os recursos visuais ativados.\n\n## O que muda aqui\n\nEste editor transforma certos símbolos do .md em **funções visuais**, só para você ver: tabelas, blocos de código com botão de copiar, índice automático e a caixa verde de mensagem. Mas o arquivo **continua sendo um .md de verdade** — quando você o envia de volta para a IA, ela lê o texto normalmente. O visual é para humanos; o conteúdo segue útil para a IA depois.\n\n> Aqui você só **vê** o que a IA escreveu. Qualquer HTML ou script colado **aparece como texto** — nada é executado e nada some. Só os recursos visuais do próprio editor são aplicados. E nada que você digitar sai do seu computador.\n\n:::message\nA caixa verde é para você **marcar uma mensagem que você mesmo enviou** para a IA, separando-a do resto da conversa.\n:::\n\n## Salvar e retomar depois\n\n1. Clique em **💾 Guardar .md** para baixar o arquivo limpo.\n2. Para continuar, **arraste o .md de volta para cá** (ou abra o arquivo e copie o conteúdo). O texto aparece sem enviar o arquivo do seu computador para lugar nenhum.\n\n```js\n// blocos de código ganham um botão de copiar\nexemplo()\n```\n\n---\n\n*Utilize esse espaço para colar seus próprios códigos gerados pela AI, tenha cuidado com códigos alheios.*\n"
+      },
+      es: {
+        appTitle: "Markdown Pro", tagline: "Reorganiza lo que la IA te entregó — el archivo sigue siendo un .md que la IA puede releer.",
+        langTitle: "Idioma", themeTitle: "Cambiar tema", optional: "Opcional:",
+        featHighlight: "Resaltado de código", featMath: "Fórmulas (KaTeX)", featDiagrams: "Diagramas (Mermaid)",
+        grpHistory: "Historial", undo: "Deshacer (Ctrl+Z)", redo: "Rehacer (Ctrl+Y)",
+        grpText: "Texto", bold: "Negrita", italic: "Cursiva",
+        grpStructure: "Estructura", list: "Lista", link: "Enlace (Ctrl+K)", grpMessage: "Mensaje",
+        pasteMsg: "💬 Pegar mensaje", wrapMsg: "Convertir selección en mensaje",
+        densityTitle: "Densidad de lectura", densDefault: "Estándar", densReading: "Lectura", densCompact: "Compacto",
+        copyMd: "📋 Copiar MD", saveMd: "💾 Guardar .md", pdf: "🖨️ PDF",
+        paneEditor: "Editor", panePreview: "Vista previa", fullscreen: "Pantalla completa", source: "↓ Código abierto — descarga y ejecuta localmente", dropHint: "arrastra un .md aquí", dropHere: "Suelta el .md para cargarlo",
+        footer: "Nada de lo que escribas se envía a nuestro servidor.",
+        modalTitle: "Añadir mensaje", modalHint: "El texto se envuelve en un bloque :::message.",
+        cancel: "Cancelar", add: "Añadir",
+        words: "palabras", chars: "caracteres", toc: "Índice",
+        copied: "¡Copiado!", selectToWrap: "Selecciona texto para convertirlo en mensaje.",
+        featLoadFail: "No se pudo cargar esta función. Añade el archivo en vendor/ para activarla sin conexión.",
+        markedMissing: "No se encontró marked.min.js en vendor/. Ejecuta el comando de descarga de SPEC.md.",
+        demo: "# Markdown Pro — cómo usar\n\nPega aquí el **.md** que te dio la IA — o **arrastra el archivo .md** a esta área. A la derecha lo ves ya formateado, con las funciones visuales activadas.\n\n## Qué cambia aquí\n\nEste editor convierte ciertos símbolos del .md en **funciones visuales**, solo para que tú las veas: tablas, bloques de código con botón de copiar, índice automático y la caja verde de mensaje. Pero el archivo **sigue siendo un .md de verdad** — cuando lo envías de vuelta a la IA, ella lee el texto con normalidad. Lo visual es para humanos; el contenido sigue siendo útil para la IA después.\n\n> Aquí solo **ves** lo que la IA escribió. Cualquier HTML o script que pegues **aparece como texto** — nada se ejecuta y nada desaparece. Solo se aplican las funciones visuales del propio editor. Y nada de lo que escribas sale de tu computadora.\n\n:::message\nLa caja verde es para que **marques un mensaje que tú mismo enviaste** a la IA, separándolo del resto de la conversación.\n:::\n\n## Guardar y retomar después\n\n1. Haz clic en **💾 Guardar .md** para descargar el archivo limpio.\n2. Para continuar, **arrastra el .md aquí de nuevo** (o abre el archivo y copia su contenido). El texto aparece sin enviar el archivo de tu computadora a ningún lugar.\n\n```js\n// los bloques de código reciben un botón de copiar\nejemplo()\n```\n\n---\n\n*Utiliza este espacio para pegar tus propios códigos generados por la IA, ten cuidado con códigos ajenos.*\n"
+      }
+    };
+
+    let lang = CONFIG.defaultLang;
+    let showingDemo = false;  // true while the untouched demo is on screen (so it can follow the language)
+    const t = (key) => (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
+
+    /* =====================================================================
+       DOM refs + tiny helpers
+    ===================================================================== */
+    const editor  = document.getElementById("editor");
+    const preview = document.getElementById("preview");
+    const toastEl = document.getElementById("toast");
+
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => toastEl.classList.remove("show"), 2200);
+    }
+
+    // Cross-browser clipboard copy with a robust fallback (works on file://).
+    function copyText(text) {
+      const done = () => toast(t("copied"));
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => legacyCopy(text, done));
+      } else {
+        legacyCopy(text, done);
+      }
+    }
+    function legacyCopy(text, done) {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        ok ? done() : window.prompt("Copy:", text);
+      } catch (e) { window.prompt("Copy:", text); }
+    }
+
+    /* =====================================================================
+       SANITIZER — HTML in the source is intentionally rendered (secondary
+       feature), but since this is public we strip script/handlers to avoid
+       self-XSS. Trusted UI (copy buttons, TOC) is added later via the DOM
+       API, so it never passes through here.
+    ===================================================================== */
+    const BLOCKED_TAGS = ["script", "iframe", "object", "embed", "link", "meta", "base"];
+    function sanitizeHTML(html) {
+      const tpl = document.createElement("template");
+      tpl.innerHTML = html;
+      const walker = document.createTreeWalker(tpl.content, NodeFilter.SHOW_ELEMENT);
+      const nodes = [];
+      for (let n = walker.nextNode(); n; n = walker.nextNode()) nodes.push(n);
+      for (const el of nodes) {
+        if (BLOCKED_TAGS.includes(el.tagName.toLowerCase())) { el.remove(); continue; }
+        for (const attr of Array.from(el.attributes)) {
+          const name = attr.name.toLowerCase();
+          if (name.startsWith("on")) el.removeAttribute(attr.name);                          // event handlers
+          else if (/^(href|src|xlink:href)$/.test(name) && /^\s*javascript:/i.test(attr.value)) el.removeAttribute(attr.name);
+          else if (name === "style" && /expression\(|javascript:/i.test(attr.value)) el.removeAttribute(attr.name);
+        }
+      }
+      return tpl.innerHTML;
+    }
+
+    // Show raw HTML / scripts from the .md as plain text — only the editor's own
+    // visual features render. "View what the AI wrote": nothing executes.
+    function escapeHtml(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+    if (typeof marked !== "undefined") {
+      marked.use({ renderer: { html(token) { return escapeHtml(token && token.text != null ? token.text : token); } } });
+    }
+
+    /* =====================================================================
+       RENDERER — pure-ish: native Markdown + custom symbols -> HTML string.
+       Reusable by the future extension. Specific markers (P3 in SPEC) keep
+       arbitrary pasted code from ever triggering a substitution.
+    ===================================================================== */
+
+    // Remove the embedded copy-button block (idempotent save / clean source).
+    const COPY_BUTTON_RE = new RegExp(
+      escapeRe(CONFIG.copyButtonOpen) + "[\\s\\S]*?" + escapeRe(CONFIG.copyButtonClose) + "\\s*", "g"
+    );
+    function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+    function stripCopyButton(text) { return text.replace(COPY_BUTTON_RE, ""); }
+
+    // Extract every message block into a placeholder so marked never reflows
+    // it, and so arbitrary content can't accidentally become one.
+    function extractMessageBlocks(src) {
+      const boxes = [];
+      const wrap = (content) => {
+        // Inner content is real Markdown (AI-readable, human-editable).
+        const inner = marked.parse(content.trim(), CONFIG.markedOptions);
+        const token = "EDCMSGPLACEHOLDER" + boxes.length;
+        boxes.push('<div class="edc-message">' + inner + "</div>");
+        return "\n\n" + token + "\n\n";
+      };
+      let out = src;
+      // 1. Canonical syntax — :::message ... ::: (line-anchored, paired).
+      out = out.replace(/^:::message[ \t]*\r?\n([\s\S]*?)\r?\n:::[ \t]*$/gm, (m, c) => wrap(c));
+      // 2. Back-compat — +++ ... +-+ (line-anchored so a diff's "+++ b/x" never matches).
+      out = out.replace(/^\+\+\+[ \t]*\r?\n([\s\S]*?)\r?\n\+-\+[ \t]*$/gm, (m, c) => wrap(c));
+      // 3. Back-compat — the old saved HTML form (<hr><div>💬</div><pre>…</pre>).
+      out = out.replace(/<hr[^>]*>\s*<div[^>]*>💬<\/div>\s*<pre>\s*([\s\S]*?)\s*<\/pre>/g, (m, c) => wrap(c));
+      return { text: out, boxes };
+    }
+
+    function renderDocument(src) {
+      src = stripCopyButton(src);
+      const { text, boxes } = extractMessageBlocks(src);
+      let html = marked.parse(text, CONFIG.markedOptions);
+      // Re-inject the message boxes where their placeholders landed.
+      boxes.forEach((markup, i) => {
+        const token = "EDCMSGPLACEHOLDER" + i;
+        html = html.includes("<p>" + token + "</p>")
+          ? html.replace("<p>" + token + "</p>", markup)
+          : html.replace(token, markup);
+      });
+      // One sanitize pass over everything (user HTML + box inner HTML).
+      return sanitizeHTML(html);
+    }
+
+    /* =====================================================================
+       PREVIEW ENRICHMENT — DOM-level extras (TOC, code headers, copy
+       buttons). Runs after innerHTML is set; all handlers are trusted.
+    ===================================================================== */
+    let tocData = [];
+    function enrichPreview() {
+      tocData = [];
+
+      // Headings -> anchored section headers + copy-section buttons.
+      preview.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((header, index) => {
+        const level = parseInt(header.tagName.substring(1), 10);
+        const textContent = header.innerText;
+        let id = textContent.normalize("NFD").replace(/[̀-ͯ]/g, "")
+          .toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+        if (!id) id = "sec-" + index;
+        let base = id, c = 1;
+        while (document.getElementById(id) || tocData.some(x => x.id === id)) id = base + "-" + (c++);
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "section-header"; wrapper.id = id;
+        const btn = document.createElement("button");
+        btn.className = "copy-section-btn"; btn.textContent = "📋";
+        btn.title = t("copyMd");
+        btn.onclick = () => copySection(wrapper, level);
+        header.parentNode.insertBefore(wrapper, header);
+        wrapper.appendChild(header); wrapper.appendChild(btn);
+        tocData.push({ id, text: textContent, level });
+      });
+
+      // Code blocks -> language header + copy button (+ optional highlight).
+      preview.querySelectorAll("pre").forEach(pre => {
+        const code = pre.querySelector("code");
+        if (!code) return;
+        let lang = "TEXT";
+        const m = code.className && code.className.match(/language-(\w+)/);
+        if (m) lang = m[1].toUpperCase();
+        if (window.hljs) { try { window.hljs.highlightElement(code); } catch (e) {} }
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "code-wrapper";
+        const head = document.createElement("div");
+        head.className = "code-header";
+        const label = document.createElement("span");
+        label.className = "code-lang"; label.textContent = lang;
+        const copy = document.createElement("button");
+        copy.className = "copy-code-btn"; copy.textContent = "📋";
+        copy.onclick = () => copyText(code.textContent);
+        head.appendChild(label); head.appendChild(copy);
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(head); wrapper.appendChild(pre);
+      });
+
+      // Table of contents (navigable index) at the very top.
+      if (tocData.length > 1) {
+        const toc = document.createElement("div");
+        toc.className = "toc-container";
+        let html = '<h3 class="toc-title">' + t("toc") + "</h3><ul class=\"toc-list\">";
+        tocData.forEach(item => {
+          html += '<li class="toc-level-' + item.level + '"><a href="#' + item.id + '">' +
+                  item.text.replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</a></li>";
+        });
+        html += "</ul>";
+        toc.innerHTML = html;
+        preview.insertBefore(toc, preview.firstChild);
+      }
+
+      // Optional renderers (only if the user enabled + the lib loaded).
+      runOptionalRenderers();
+    }
+
+    function copySection(headerEl, level) {
+      let text = headerEl.querySelector("h1,h2,h3,h4,h5,h6").innerText + "\n\n";
+      let cur = headerEl.nextElementSibling;
+      while (cur) {
+        if (cur.classList.contains("section-header")) {
+          const h = cur.querySelector("h1,h2,h3,h4,h5,h6");
+          if (h && parseInt(h.tagName.substring(1), 10) <= level) break;
+        }
+        text += cur.innerText + "\n\n";
+        cur = cur.nextElementSibling;
+      }
+      copyText(text.trim());
+    }
+
+    /* =====================================================================
+       MAIN UPDATE — render + enrich + autosave + counts
+    ===================================================================== */
+    let saveTimer;
+    function updatePreview() {
+      if (typeof marked === "undefined") { preview.innerHTML = "<p>" + t("markedMissing") + "</p>"; return; }
+      preview.innerHTML = renderDocument(editor.value || "");
+      enrichPreview();
+      updateCounts();
+      clearTimeout(saveTimer);
+      if (!showingDemo) saveTimer = setTimeout(persist, 400);  // never autosave the demo
+    }
+
+    function updateCounts() {
+      const v = editor.value || "";
+      const words = (v.trim().match(/\S+/g) || []).length;
+      document.getElementById("counts").textContent = words + " " + t("words") + " · " + v.length + " " + t("chars");
+    }
+
+    function persist() {
+      try { localStorage.setItem(CONFIG.storageKeys.content, editor.value); } catch (e) {}
+    }
+
+    /* =====================================================================
+       HISTORY (undo / redo)
+    ===================================================================== */
+    const History = {
+      stack: [], index: -1, applying: false, timer: null,
+      save() {
+        const val = editor.value;
+        if (this.index >= 0 && this.stack[this.index].val === val) return;
+        this.stack = this.stack.slice(0, this.index + 1);
+        this.stack.push({ val, start: editor.selectionStart, end: editor.selectionEnd });
+        this.index++;
+      },
+      undo() { if (this.index > 0) { this.index--; this.apply(this.stack[this.index]); } },
+      redo() { if (this.index < this.stack.length - 1) { this.index++; this.apply(this.stack[this.index]); } },
+      apply(s) {
+        this.applying = true;
+        editor.value = s.val; editor.setSelectionRange(s.start, s.end); editor.focus();
+        updatePreview();
+        setTimeout(() => { this.applying = false; }, 10);
+      }
+    };
+
+    editor.addEventListener("input", () => {
+      if (History.applying) return;
+      showingDemo = false;  // user typed — stop swapping the demo on language change
+      clearTimeout(History.timer);
+      History.timer = setTimeout(() => History.save(), 300);
+      updatePreview();
+    });
+
+    // Clean any embedded copy-button out of pasted content (source stays native).
+    editor.addEventListener("paste", (e) => {
+      const data = (e.clipboardData || window.clipboardData);
+      if (!data) return;
+      const txt = data.getData("text");
+      if (txt && new RegExp(escapeRe(CONFIG.copyButtonOpen)).test(txt)) {
+        e.preventDefault();
+        insertAtCursor(stripCopyButton(txt));
+        History.save(); updatePreview();
+      }
+    });
+
+    /* =====================================================================
+       EDITOR ACTIONS (toolbar)
+    ===================================================================== */
+    function insertAtCursor(textIn) {
+      const s = editor.selectionStart, e = editor.selectionEnd, v = editor.value;
+      editor.value = v.slice(0, s) + textIn + v.slice(e);
+      const pos = s + textIn.length;
+      editor.setSelectionRange(pos, pos);
+    }
+    function wrapSelection(before, after) {
+      History.save();
+      const s = editor.selectionStart, e = editor.selectionEnd, v = editor.value;
+      const sel = v.slice(s, e);
+      editor.value = v.slice(0, s) + before + sel + after + v.slice(e);
+      editor.setSelectionRange(s + before.length, s + before.length + sel.length);
+      updatePreview(); History.save();
+    }
+    function applyLinePrefix(prefix) {
+      History.save();
+      const s = editor.selectionStart, e = editor.selectionEnd, v = editor.value;
+      const out = v.slice(s, e).split("\n").map(l => (!l.trim() ? l : prefix + l.replace(/^\s+/, ""))).join("\n");
+      editor.value = v.slice(0, s) + out + v.slice(e);
+      editor.setSelectionRange(s, s + out.length);
+      updatePreview(); History.save();
+    }
+    function insertHorizontalRule() {
+      History.save();
+      const s = editor.selectionStart, v = editor.value;
+      const ins = (s > 0 && v[s - 1] !== "\n" ? "\n\n" : "\n") + "---\n\n";
+      insertAtCursor(ins);
+      updatePreview(); History.save();
+    }
+    function insertLink() {
+      History.save();
+      const s = editor.selectionStart, en = editor.selectionEnd, v = editor.value;
+      const sel = v.slice(s, en) || "text";
+      const snippet = "[" + sel + "](url)";
+      editor.value = v.slice(0, s) + snippet + v.slice(en);
+      const urlAt = s + sel.length + 3;        // place cursor onto "url"
+      editor.setSelectionRange(urlAt, urlAt + 3);
+      updatePreview(); History.save();
+    }
+    function wrapMessage() {
+      const s = editor.selectionStart, e = editor.selectionEnd, v = editor.value;
+      const sel = v.slice(s, e);
+      if (!sel.trim()) { toast(t("selectToWrap")); return; }
+      History.save();
+      const snippet = "\n:::message\n" + sel + "\n:::\n";
+      editor.value = v.slice(0, s) + snippet + v.slice(e);
+      const pos = s + snippet.length;
+      editor.setSelectionRange(pos, pos);
+      updatePreview(); History.save();
+    }
+    function insertMessage(text) {
+      History.save();
+      insertAtCursor("\n:::message\n" + text + "\n:::\n");
+      updatePreview(); History.save();
+    }
+
+    /* =====================================================================
+       IO — copy to AI, save .md (source + embedded button), modal
+    ===================================================================== */
+    // What an AI should receive: the native source the user typed (no preview HTML).
+    function getNativeSource() { return stripCopyButton(editor.value); }
+
+    // In-page "Copy MD": puts the clean native source on the clipboard (e.g. to paste into an AI).
+    function copyMarkdown() { copyText(getNativeSource()); }
+
+    function saveMarkdown() {
+      const nativeMd = getNativeSource();            // save the SOURCE (clean .md), never the preview
+      if (!nativeMd.trim()) return;
+      const fileContent = nativeMd;
+      const blob = new Blob([fileContent], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "document.md";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    const modal = document.getElementById("msg-modal");
+    const modalText = document.getElementById("msg-textarea");
+    function openModal()  { modal.style.display = "flex"; modalText.value = ""; setTimeout(() => modalText.focus(), 80); }
+    function closeModal() { modal.style.display = "none"; editor.focus(); }
+    function addFromModal() {
+      const v = modalText.value;
+      if (v.trim()) insertMessage(v.trim());
+      closeModal();
+    }
+
+    /* =====================================================================
+       OPTIONAL FEATURES — lazy, opt-in. Nothing loads until toggled, and a
+       missing vendor file degrades gracefully (P1/§7 in SPEC).
+    ===================================================================== */
+    const FEATURES = {
+      highlight: { scripts: ["vendor/highlight.min.js"], css: "vendor/highlight.css", ready: () => !!window.hljs },
+      math:      { scripts: ["vendor/katex.min.js", "vendor/katex-auto-render.min.js"], css: "vendor/katex.min.css", ready: () => !!window.renderMathInElement },
+      diagrams:  { scripts: ["vendor/mermaid.min.js"], css: null, ready: () => !!window.mermaid }
+    };
+    const featureEnabled = { highlight: false, math: false, diagrams: false };
+
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = src; s.onload = resolve; s.onerror = () => reject(new Error("load " + src));
+        document.head.appendChild(s);
+      });
+    }
+    function loadCss(href) {
+      const l = document.createElement("link");
+      l.rel = "stylesheet"; l.href = href; document.head.appendChild(l);
+    }
+    async function enableFeature(name, checkbox) {
+      const def = FEATURES[name];
+      try {
+        if (def.css) loadCss(def.css);
+        for (const s of def.scripts) await loadScript(s);
+        featureEnabled[name] = true;
+        if (name === "diagrams" && window.mermaid) window.mermaid.initialize({ startOnLoad: false });
+        updatePreview();
+      } catch (e) {
+        featureEnabled[name] = false;
+        if (checkbox) checkbox.checked = false;
+        toast(t("featLoadFail"));
+      }
+    }
+    function runOptionalRenderers() {
+      if (featureEnabled.math && window.renderMathInElement) {
+        try {
+          window.renderMathInElement(preview, {
+            delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }]
+          });
+        } catch (e) {}
+      }
+      if (featureEnabled.diagrams && window.mermaid) {
+        preview.querySelectorAll("code.language-mermaid").forEach(code => {
+          const div = document.createElement("div");
+          div.className = "mermaid"; div.textContent = code.textContent;
+          const wrap = code.closest(".code-wrapper") || code.parentElement;
+          wrap.replaceWith(div);
+        });
+        try { window.mermaid.run({ querySelector: "#preview .mermaid" }); } catch (e) {}
+      }
+    }
+
+    /* =====================================================================
+       PREFERENCES — language, theme, density (persisted)
+    ===================================================================== */
+    function applyI18n() {
+      document.documentElement.lang = lang;
+      document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.getAttribute("data-i18n")); });
+      document.querySelectorAll("[data-i18n-title]").forEach(el => { el.title = t(el.getAttribute("data-i18n-title")); });
+      updateCounts();
+    }
+    function setLang(l) {
+      lang = I18N[l] ? l : CONFIG.defaultLang;
+      try { localStorage.setItem(CONFIG.storageKeys.lang, lang); } catch (e) {}
+      document.getElementById("langSelect").value = lang;
+      applyI18n();
+      // If the untouched demo is on screen, translate it to the new language too.
+      if (showingDemo) { editor.value = t("demo"); History.save(); updatePreview(); }
+    }
+    function setTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      try { localStorage.setItem(CONFIG.storageKeys.theme, theme); } catch (e) {}
+    }
+    function setDensity(d) {
+      preview.classList.remove("density-default", "density-reading", "density-compact");
+      preview.classList.add("density-" + d);
+      document.getElementById("densitySelect").value = d;
+      try { localStorage.setItem(CONFIG.storageKeys.density, d); } catch (e) {}
+    }
+
+    /* =====================================================================
+       EVENT WIRING — delegated toolbar/actions, selects, shortcuts
+    ===================================================================== */
+    const ACTIONS = {
+      undo: () => History.undo(), redo: () => History.redo(),
+      bold: () => wrapSelection("**", "**"), italic: () => wrapSelection("*", "*"),
+      h1: () => applyLinePrefix("# "), h2: () => applyLinePrefix("## "),
+      list: () => applyLinePrefix("- "), code: () => wrapSelection("```\n", "\n```"),
+      hr: () => insertHorizontalRule(), link: () => insertLink(),
+      "paste-msg": () => openModal(), "wrap-msg": () => wrapMessage(),
+      "copy-md": () => copyMarkdown(), "save-md": () => saveMarkdown(), pdf: () => window.print(),
+      fullscreen: () => openFullscreen(), "fullscreen-close": () => closeFullscreen(),
+      "theme-toggle": () => setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"),
+      "modal-cancel": () => closeModal(), "modal-add": () => addFromModal()
+    };
+    document.addEventListener("click", (e) => {
+      const el = e.target.closest("[data-action]");
+      if (el && ACTIONS[el.getAttribute("data-action")]) ACTIONS[el.getAttribute("data-action")]();
+    });
+    document.getElementById("langSelect").addEventListener("change", (e) => setLang(e.target.value));
+    document.getElementById("densitySelect").addEventListener("change", (e) => setDensity(e.target.value));
+    document.querySelectorAll("[data-feature]").forEach(cb => {
+      cb.addEventListener("change", (e) => {
+        const name = cb.getAttribute("data-feature");
+        if (e.target.checked) enableFeature(name, cb);
+        else { featureEnabled[name] = false; updatePreview(); }
+      });
+    });
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+    document.addEventListener("keydown", (e) => {
+      // Escape closes the fullscreen overlay first, then the modal.
+      if (e.key === "Escape") {
+        if (document.getElementById("fullscreen-overlay").classList.contains("open")) { e.preventDefault(); closeFullscreen(); return; }
+        if (modal.style.display === "flex") { e.preventDefault(); closeModal(); return; }
+      }
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        const k = e.key.toLowerCase();
+        if (k === "b") { e.preventDefault(); wrapSelection("**", "**"); }
+        else if (k === "i") { e.preventDefault(); wrapSelection("*", "*"); }
+        else if (k === "k") { e.preventDefault(); insertLink(); }
+        else if (k === "s") { e.preventDefault(); saveMarkdown(); }
+        else if (k === "z") { e.preventDefault(); History.undo(); }
+        else if (k === "y") { e.preventDefault(); History.redo(); }
+        else if (k === "enter" && modal.style.display === "flex") { e.preventDefault(); addFromModal(); }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z") { e.preventDefault(); History.redo(); }
+    });
+
+    // Tab / Shift+Tab indents inside the editor instead of leaving the field.
+    editor.addEventListener("keydown", (e) => {
+      if (e.key !== "Tab") return;
+      e.preventDefault();
+      const INDENT = "  ";
+      const s = editor.selectionStart, en = editor.selectionEnd, v = editor.value;
+      History.save();
+      if (s === en) {
+        editor.value = v.slice(0, s) + INDENT + v.slice(en);
+        editor.setSelectionRange(s + INDENT.length, s + INDENT.length);
+      } else {
+        const lineStart = v.lastIndexOf("\n", s - 1) + 1;
+        const block = v.slice(lineStart, en);
+        const out = e.shiftKey ? block.replace(/^( {1,2}|\t)/gm, "") : block.replace(/^/gm, INDENT);
+        editor.value = v.slice(0, lineStart) + out + v.slice(en);
+        editor.setSelectionRange(lineStart, lineStart + out.length);
+      }
+      updatePreview(); History.save();
+    });
+
+    /* =====================================================================
+       LAYOUT — resizable splitter + fullscreen reading overlay
+    ===================================================================== */
+    const fsOverlay = document.getElementById("fullscreen-overlay");
+    function openFullscreen() {
+      fsOverlay.appendChild(preview);                                   // move the live preview node in
+      fsOverlay.classList.add("open");
+    }
+    function closeFullscreen() {
+      document.getElementById("preview-container").appendChild(preview); // move it back
+      fsOverlay.classList.remove("open");
+    }
+    fsOverlay.addEventListener("click", (e) => { if (e.target === fsOverlay) closeFullscreen(); });
+
+    (function setupSplitter() {
+      const splitter = document.getElementById("splitter");
+      const main = document.querySelector(".main");
+      const leftPane = document.getElementById("editor-pane");
+      let dragging = false;
+      splitter.addEventListener("pointerdown", (e) => {
+        dragging = true; splitter.classList.add("dragging"); splitter.setPointerCapture(e.pointerId);
+      });
+      splitter.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        const rect = main.getBoundingClientRect(), min = 140;
+        const w = Math.max(min, Math.min(rect.width - min - 6, e.clientX - rect.left));
+        leftPane.style.flex = "0 0 " + w + "px";
+      });
+      const stop = (e) => { if (!dragging) return; dragging = false; splitter.classList.remove("dragging"); try { splitter.releasePointerCapture(e.pointerId); } catch (x) {} };
+      splitter.addEventListener("pointerup", stop);
+      splitter.addEventListener("pointercancel", stop);
+    })();
+
+    // Load text into the editor (drag & drop); strips any legacy embedded button.
+    function loadContent(text) {
+      showingDemo = false;
+      editor.value = stripCopyButton(text);
+      History.save();
+      updatePreview();
+      persist();
+    }
+
+    (function setupDropZone() {
+      const pane = document.getElementById("editor-pane");
+      const zone = document.getElementById("drop-zone");
+      const hasFiles = (e) => e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], "Files") !== -1;
+      ["dragenter", "dragover"].forEach((ev) => pane.addEventListener(ev, (e) => {
+        if (!hasFiles(e)) return;
+        e.preventDefault(); zone.classList.add("show");
+      }));
+      pane.addEventListener("dragleave", (e) => {
+        if (e.relatedTarget && pane.contains(e.relatedTarget)) return;
+        zone.classList.remove("show");
+      });
+      pane.addEventListener("drop", (e) => {
+        if (!hasFiles(e)) return;
+        e.preventDefault(); zone.classList.remove("show");
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => loadContent(String(reader.result || ""));
+        reader.readAsText(file);
+      });
+    })();
+
+    /* =====================================================================
+       INIT
+    ===================================================================== */
+    function readPref(key, fallback) { try { return localStorage.getItem(key) || fallback; } catch (e) { return fallback; } }
+
+    (function init() {
+      // Language: stored pref -> browser language -> default.
+      const stored = readPref(CONFIG.storageKeys.lang, "");
+      const browser = (navigator.language || "en").slice(0, 2);
+      setLang(stored || (I18N[browser] ? browser : CONFIG.defaultLang));
+      setTheme(readPref(CONFIG.storageKeys.theme, "light"));
+      setDensity(readPref(CONFIG.storageKeys.density, "default"));
+
+      // Restore last content, otherwise show the localized demo (which follows
+      // later language switches until the user edits — see setLang/showingDemo).
+      const savedContent = readPref(CONFIG.storageKeys.content, "");
+      if (savedContent) { editor.value = savedContent; showingDemo = false; }
+      else { editor.value = t("demo"); showingDemo = true; }
+      History.save();
+      updatePreview();
+    })();
+  })();
+  </script>
+</body>
+</html>
