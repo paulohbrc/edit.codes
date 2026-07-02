@@ -1,7 +1,6 @@
 # Third-party notices
 
 This folder contains **unmodified** distribution files from upstream projects.
-Versions are pinned in `scripts/vendorize.ps1`. Reproduce with that script; do not hand-write minified bundles.
 
 ## marked
 
@@ -29,15 +28,3 @@ Versions are pinned in `scripts/vendorize.ps1`. Reproduce with that script; do n
 - **Version:** 10.9.3 (`mermaid.min.js`)
 - **License:** MIT
 - **Source:** https://github.com/mermaid-js/mermaid
-
----
-
-### Redistribution (GitHub / website)
-
-MIT and BSD-3-Clause allow you to **ship these files with your app** (GitHub repo, static site, `edit.codes`, etc.) when you:
-
-- Keep the upstream files intact
-- Provide attribution (this file satisfies that for human readers; license texts remain in upstream repos/releases)
-- Do not imply endorsement by the original authors
-
-Your application code (`index.html`, etc.) may use a separate license chosen by you.
