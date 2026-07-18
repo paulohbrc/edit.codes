@@ -78,7 +78,7 @@ Texto antes da regra.
 
 [Edit Codes](https://edit.codes) · [link com título](https://exemplo.com "dica ao passar o mouse")
 
-![Diagrama de exemplo](https://via.placeholder.com/320x80/059669/ffffff?text=Markdown+imagem)
+![Atenção, se você está no celular, clique em Tela Cheia para visualizar corretamente.](https://placehold.co/900x100/dc2626/ffffff?text=Atenção:+clique+em+Tela+Cheia+para+visualizar+corretamente)
 
 ---
 

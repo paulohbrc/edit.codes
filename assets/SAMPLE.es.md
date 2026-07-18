@@ -78,7 +78,7 @@ Texto antes de la regla.
 
 [Edit Codes](https://edit.codes) · [enlace con título](https://ejemplo.com "ayuda al pasar el ratón")
 
-![Diagrama de ejemplo](https://via.placeholder.com/320x80/059669/ffffff?text=Imagen+Markdown)
+![Atención: si estás en el móvil, toca Pantalla completa para verlo correctamente.](https://placehold.co/900x100/dc2626/ffffff?text=Atención:+toca+Pantalla+completa+para+verlo+correctamente)
 
 ---
 

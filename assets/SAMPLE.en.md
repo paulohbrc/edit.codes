@@ -78,7 +78,7 @@ Text before the rule.
 
 [Edit Codes](https://edit.codes) · [link with title](https://example.com "tooltip on hover")
 
-![Sample diagram](https://via.placeholder.com/320x80/059669/ffffff?text=Markdown+image)
+![Attention: if you're on a phone, tap Fullscreen to view it properly.](https://placehold.co/900x100/dc2626/ffffff?text=Attention:+tap+Fullscreen+to+view+it+properly)
 
 ---
 

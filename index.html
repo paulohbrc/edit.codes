@@ -15,56 +15,7 @@
     (vendor/marked.min.js) — the genuine downloaded file, never hand-written.
   -->
   <script src="vendor/marked.min.js"></script>
-  
-<!-- Open Source Semantic Attribution (web3.archi) - Do not remove for AGPL compliance -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "WebApplication",
-          "@id": "https://edit.codes/#application",
-          "name": "edit.codes",
-          "url": "https://edit.codes",
-          "description": "Secure Markdown and HTML viewer with modular code extensions for local and web execution.",
-          "applicationCategory": "DeveloperApplication",
-          "operatingSystem": "All",
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
-          },
-          "publisher": {
-            "@id": "https://web3.archi/#organization"
-          },
-          "creator": {
-            "@id": "https://pc.center/#person"
-          }
-        },
-        {
-          "@type": "Organization",
-          "@id": "https://web3.archi/#organization",
-          "name": "web3.archi",
-          "url": "https://web3.archi",
-          "founder": {
-            "@id": "https://pc.center/#person"
-          }
-        },
-        {
-          "@type": "Person",
-          "@id": "https://pc.center/#person",
-          "name": "Paulo Castro",
-          "url": "https://pc.center",
-          "sameAs": [
-            "https://x.com/paulohbrc",
-            "https://github.com/paulohbrc"
-            "https://linkedin.com/in/paulohbrc"
-          ]
-        }
-      ]
-    }
-    </script>
-  
+
   <style>
     /* ---------------------------------------------------------------------
        THEME TOKENS — all colors go through CSS variables so light/dark is
@@ -102,31 +53,49 @@
     }
 
     * { box-sizing: border-box; }
+    html {
+      height: 100%; overflow: hidden;
+    }
     body {
       margin: 0; font-family: system-ui, -apple-system, sans-serif;
-      height: 100vh; display: flex; flex-direction: column;
+      /* Fixed shell: content can never stretch the document height */
+      position: fixed; inset: 0; width: 100%;
+      height: 100%; height: 100dvh; max-height: 100dvh;
+      display: flex; flex-direction: column;
       background: var(--bg); color: var(--fg);
+      overflow: hidden; min-width: 0;
     }
 
     header {
       padding: 10px 16px; background: var(--header-bg); color: var(--header-fg);
       display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      flex-wrap: wrap; min-width: 0; flex: 0 0 auto;
     }
-    header h1 { font-size: 16px; margin: 0; font-weight: 600; white-space: nowrap; }
+    header h1 { font-size: 16px; margin: 0; font-weight: 600; white-space: nowrap; flex: 0 1 auto; min-width: 0; }
     .tagline { font-size: 12px; opacity: 0.8; flex: 1; min-width: 0;
                overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .head-controls { display: flex; gap: 8px; align-items: center; }
+    .head-controls {
+      display: flex; gap: 6px; align-items: center; flex-shrink: 0;
+      flex-wrap: wrap; justify-content: flex-end; max-width: 100%;
+    }
     .head-controls select, .head-controls button {
       background: var(--toolbar-btn); color: var(--toolbar-fg); border: none;
       border-radius: 4px; padding: 5px 10px; font-size: 13px; cursor: pointer;
+      white-space: nowrap;
     }
+    .head-controls .fs-head {
+      background: #dc2626; color: #fff; font-weight: 600;
+      display: inline-flex; gap: 5px; align-items: center;
+    }
+    .head-controls .fs-head:hover { background: #b91c1c; filter: none; }
+    .head-controls .fs-head.intro { animation: fsblink 0.55s ease-in-out 3; }
     .counts { font-size: 11px; color: var(--group-fg); white-space: nowrap; }
 
     /* Optional, opt-in features bar (lazy-loaded — base stays light). */
     .feature-bar {
       display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
       padding: 6px 16px; background: var(--toolbar-bg); color: var(--group-fg);
-      border-bottom: 1px solid var(--pane-border); font-size: 12px;
+      border-bottom: 1px solid var(--pane-border); font-size: 12px; flex: 0 0 auto;
     }
     .feature-bar label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
 
@@ -134,6 +103,7 @@
     .toolbar {
       display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 16px;
       background: var(--toolbar-bg); border-bottom: 1px solid var(--pane-border); align-items: center;
+      flex: 0 0 auto;
     }
     .toolbar button {
       border: none; padding: 5px 10px; border-radius: 4px;
@@ -150,22 +120,28 @@
     .toolbar button.primary:hover { background: #15803d; }
     .toolbar button.msg { background: #059669; color: #fff; }
 
-    /* Layout */
-    .main { flex: 1; display: flex; min-height: 0; }
-    .pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    /* Layout — panes must not grow with content (sample + mermaid would blow the page) */
+    .main { flex: 1; display: flex; min-height: 0; overflow: hidden; }
+    .pane { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
     .pane-header {
       padding: 8px 12px; font-size: 13px; font-weight: 600;
       background: var(--pane-head-bg); color: var(--pane-head-fg); border-bottom: 1px solid var(--pane-border);
+      min-width: 0; flex: 0 0 auto;
     }
-    .pane-body { flex: 1; display: flex; min-height: 0; overflow: hidden; background: var(--editor-bg); }
+    .pane-body { flex: 1 1 auto; display: flex; min-height: 0; overflow: hidden; background: var(--editor-bg); }
 
     textarea {
-      width: 100%; border: none; resize: none; padding: 16px;
+      width: 100%; height: 100%; min-height: 0; border: none; resize: none; padding: 16px;
       font-family: ui-monospace, monospace; font-size: var(--editor-fs, 14px); line-height: 1.6;
       outline: none; background: var(--editor-bg); color: var(--editor-fg);
+      flex: 1 1 auto; overflow: auto;
     }
 
-    #preview-container { width: 100%; padding: 24px; overflow: auto; background: var(--preview-area); scroll-behavior: smooth; scrollbar-gutter: stable; display: block; }
+    #preview-container {
+      width: 100%; height: 100%; min-height: 0; padding: 24px; overflow: auto;
+      background: var(--preview-area); scroll-behavior: smooth; scrollbar-gutter: stable; display: block;
+      flex: 1 1 auto;
+    }
     #preview {
       margin: 0 auto; max-width: 850px; padding: 32px 40px; background: var(--paper-bg);
       border-radius: 6px; box-shadow: 0 0 0 1px rgba(15,23,42,0.08), 0 6px 18px rgba(15,23,42,0.12);
@@ -184,12 +160,72 @@
     #preview th, #preview td { border: 1px solid var(--pane-border); padding: 6px 10px; text-align: left; }
     #preview th { background: var(--inline-code-bg); }
     #preview a { color: var(--link); }
-    #preview img { max-width: 100%; }
+    #preview img { max-width: 100%; height: auto; }
     #preview input[type="checkbox"] { margin-right: 6px; }
 
     /* KaTeX display math + Mermaid diagrams (opt-in features) */
-    #preview .edc-math-display { margin: 1em 0; overflow-x: auto; text-align: center; }
-    #preview .mermaid { margin: 1.2em 0; text-align: center; }
+    #preview .edc-math-display { margin: 1em 0; overflow-x: auto; text-align: center; max-width: 100%; }
+    /* 70% size; do NOT force svg width/height or line-height:0 — that kills node labels */
+    #preview .mermaid {
+      margin: 1em auto; text-align: center; max-width: 70%;
+      overflow: visible; line-height: normal;
+    }
+    #preview .mermaid svg {
+      max-width: 100% !important; height: auto !important;
+      display: inline-block; vertical-align: middle;
+    }
+    #preview .mermaid .nodeLabel,
+    #preview .mermaid .edgeLabel,
+    #preview .mermaid .label,
+    #preview .mermaid foreignObject,
+    #preview .mermaid foreignObject > div,
+    #preview .mermaid foreignObject span {
+      line-height: 1.3 !important;
+      color: inherit !important;
+      background: transparent !important;
+      font-size: 14px !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+    }
+
+    /* End-of-preview thank-you block (injected; not part of the .md source) */
+    #preview .edc-thanks {
+      margin: 2.5em 0 0.5em; text-align: center;
+    }
+    #preview .edc-thanks-rule {
+      border: none; border-top: 1px solid var(--rule); margin: 1.5em 0;
+    }
+    #preview .edc-thanks-title {
+      font-size: 1.47em; font-weight: 700; line-height: 1.35;
+      margin: 0.6em 0 0.35em; color: var(--paper-fg);
+    }
+    #preview .edc-thanks-sub {
+      font-size: 1.05em; font-weight: 600; line-height: 1.45;
+      margin: 0.25em 0 0.85em; color: var(--paper-fg);
+    }
+    #preview .edc-thanks-follow {
+      font-size: 1em; font-weight: 600; margin: 0 0 0.75em; color: var(--muted);
+    }
+    #preview .edc-social {
+      display: flex; justify-content: center; align-items: center;
+      gap: 10px; flex-wrap: wrap; margin: 0 0 0.5em;
+    }
+    #preview .edc-social-btn {
+      width: 40px; height: 40px; border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      text-decoration: none; color: #fff; transition: transform 0.15s, filter 0.15s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    #preview .edc-social-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+    #preview .edc-social-btn svg { width: 18px; height: 18px; fill: currentColor; display: block; }
+    #preview .edc-social-btn.x { background: #111827; }
+    #preview .edc-social-btn.ig {
+      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    }
+    #preview .edc-social-btn.li { background: #0a66c2; }
+    #preview .edc-social-btn.gh { background: #24292f; }
+    html[data-theme="dark"] #preview .edc-social-btn.gh { background: #484f58; }
 
     /* Message block (custom symbol :::message) */
     #preview .edc-message {
@@ -240,7 +276,29 @@
     #preview.density-reading { font-size: 16px; font-family: Georgia, serif; }
     #preview.density-compact { font-size: 13.5px; padding: 24px; }
 
-    footer { font-size: 12.5px; text-align: center; padding: 8px 12px; color: var(--toolbar-fg); background: var(--header-bg); }
+    footer {
+      font-size: 12.5px; text-align: center; padding: 8px 12px;
+      color: var(--toolbar-fg); background: var(--header-bg); flex: 0 0 auto;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 12px;
+    }
+    footer .footer-social {
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    footer .edc-social-btn {
+      width: 26px; height: 26px; border-radius: 5px;
+      display: inline-flex; align-items: center; justify-content: center;
+      text-decoration: none; color: #fff; transition: filter 0.15s, transform 0.15s;
+      opacity: 0.92;
+    }
+    footer .edc-social-btn:hover { filter: brightness(1.12); transform: translateY(-1px); opacity: 1; }
+    footer .edc-social-btn svg { width: 13px; height: 13px; fill: currentColor; display: block; }
+    footer .edc-social-btn.x { background: #374151; }
+    footer .edc-social-btn.ig {
+      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    }
+    footer .edc-social-btn.li { background: #0a66c2; }
+    footer .edc-social-btn.gh { background: #484f58; }
+    footer .source-link { color: #93c5fd; }
 
     /* Modal */
     #msg-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
@@ -261,13 +319,10 @@
     .splitter { flex: 0 0 6px; cursor: col-resize; background: var(--pane-border); transition: background 0.15s; }
     .splitter:hover, .splitter.dragging { background: var(--accent); }
 
-    /* Preview pane header with the fullscreen button */
-    .pane-header-flex { display: flex; justify-content: space-between; align-items: center; }
+    /* Pane headers: label | zoom | open/drop (or empty) */
+    .pane-header-flex { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
     .pane-btn { background: transparent; border: 1px solid var(--pane-border); border-radius: 4px; color: inherit; cursor: pointer; font-size: 13px; line-height: 1; padding: 3px 8px; }
     .pane-btn:hover { background: var(--pane-border); }
-    /* Prominent fullscreen button + 3-blink attention on load */
-    .pane-btn.fs { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; display: inline-flex; gap: 5px; align-items: center; }
-    .pane-btn.fs:hover { background: var(--accent); filter: brightness(1.12); }
     .pane-zoom { display: inline-flex; gap: 4px; align-items: center; }
     .pane-zoom button {
       background: transparent; border: 1px solid var(--pane-border); border-radius: 4px;
@@ -276,31 +331,103 @@
     }
     .pane-zoom button:hover { background: var(--pane-border); }
     .pane-zoom .zoom-label { font-size: 10px; font-weight: 400; opacity: 0.55; min-width: 2.2em; text-align: center; }
-    @keyframes fsblink { 0%, 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); } 50% { box-shadow: 0 0 0 5px rgba(37,99,235,0.55); transform: scale(1.06); } }
-    .pane-btn.fs.intro { animation: fsblink 0.55s ease-in-out 3; }
+    /* Common expand-corners fullscreen icon (no heavy box border) */
+    .pane-btn.fs-icon {
+      background: transparent; border: none; border-radius: 4px;
+      min-width: 28px; min-height: 28px; padding: 4px;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: inherit; opacity: 0.75;
+    }
+    .pane-btn.fs-icon svg {
+      width: 16px; height: 16px; display: block;
+      stroke: currentColor; fill: none; stroke-width: 2;
+      stroke-linecap: round; stroke-linejoin: round;
+    }
+    .pane-btn.fs-icon:hover { background: var(--pane-border); opacity: 1; }
+    @keyframes fsblink { 0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); } 50% { box-shadow: 0 0 0 5px rgba(220,38,38,0.55); transform: scale(1.06); } }
+    .pane-btn.fs.intro, .head-controls .fs-head.intro { animation: fsblink 0.55s ease-in-out 3; }
 
-    /* Subtle drop hint in the editor header + drag overlay */
-    .pane-hint { font-weight: 400; font-size: 11px; opacity: 0.55; }
+    /* Red typewriter banner (demo mobile hint — replaces edc-type-hint image) */
+    .edc-type-banner {
+      background: #dc2626; color: #ffffff; border-radius: 6px;
+      padding: 14px 18px; margin: 1em 0 1.5em; font-weight: 600;
+      font-size: 0.95em; line-height: 1.45; min-height: 3.2em;
+      display: flex; align-items: center; flex-wrap: wrap;
+      box-shadow: 0 4px 10px -2px rgba(220, 38, 38, 0.35);
+    }
+    .edc-type-banner .edc-type-text { white-space: pre-wrap; word-break: break-word; }
+    .edc-type-banner .edc-type-cursor {
+      display: inline-block; margin-left: 2px; font-weight: 400;
+      animation: edc-cursor-blink 0.85s step-end infinite;
+    }
+    @keyframes edc-cursor-blink { 50% { opacity: 0; } }
+
+    /* Open / drop controls in the editor header + drag overlay */
+    .pane-open-row {
+      display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      justify-content: flex-end; min-width: 0; max-width: 100%;
+    }
+    .pane-hint { font-weight: 400; font-size: 11px; opacity: 0.55; white-space: nowrap; }
+    .pane-btn.open-md {
+      background: var(--accent); color: var(--accent-fg); border-color: var(--accent);
+      font-weight: 600; font-size: 12px; padding: 4px 10px;
+    }
+    .pane-btn.open-md:hover { filter: brightness(1.12); }
     #editor-pane { position: relative; }
     #drop-zone { position: absolute; inset: 8px; display: none; align-items: center; justify-content: center; text-align: center; padding: 20px; z-index: 60; pointer-events: none; border: 3px dashed var(--accent); border-radius: 8px; background: rgba(37,99,235,0.10); color: var(--accent); font-weight: 700; font-size: 16px; }
     #drop-zone.show { display: flex; }
+    #md-file-input { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
+
+    /* Mobile — keep FS | Lang | Theme from overflowing right */
+    @media (max-width: 720px) {
+      header { padding: 8px 10px; gap: 8px; }
+      header h1 { font-size: 14px; max-width: 48%; overflow: hidden; text-overflow: ellipsis; }
+      .tagline { display: none; }
+      .counts { display: none; }
+      .head-controls { width: 100%; justify-content: space-between; gap: 6px; }
+      .head-controls select, .head-controls button {
+        flex: 1 1 0; min-width: 0; padding: 7px 8px; font-size: 12px;
+        text-align: center; justify-content: center;
+      }
+      .head-controls select { max-width: none; }
+      .feature-bar { gap: 8px 12px; padding: 6px 10px; font-size: 11px; }
+      .toolbar { padding: 6px 10px; gap: 4px; }
+      .toolbar .group-label { display: none; }
+      .pane-header { padding: 6px 8px; font-size: 12px; gap: 6px; flex-wrap: wrap; }
+      .pane-header-flex { gap: 6px; }
+      .pane-open-row { width: 100%; justify-content: flex-start; }
+      .pane-hint { white-space: normal; }
+      .main { flex-direction: column; }
+      .splitter { display: none; }
+      /* Equal panes that scroll internally — never expand the page height */
+      .pane { flex: 1 1 50%; min-height: 0; max-height: 50%; }
+      #preview { padding: 20px 16px; }
+      #fullscreen-overlay { padding: 56px 10px 20px; }
+    }
 
     /* Fullscreen reading overlay (floating document) */
-    #fullscreen-overlay { position: fixed; inset: 0; z-index: 1500; display: none; overflow: auto; padding: 40px 16px; background: rgba(0,0,0,0.65); }
+    #fullscreen-overlay {
+      position: fixed; inset: 0; z-index: 1500; display: none;
+      overflow: auto; -webkit-overflow-scrolling: touch;
+      padding: 40px 16px; background: rgba(0,0,0,0.65);
+      overscroll-behavior: contain;
+    }
     #fullscreen-overlay.open { display: block; }
-    #fullscreen-overlay #preview { margin: 0 auto; }
+    #fullscreen-overlay #preview { margin: 0 auto; max-width: 850px; }
     .fs-close { position: fixed; top: 16px; right: 20px; z-index: 1600; background: #111827; color: #fff; border: none; border-radius: 6px; width: 36px; height: 36px; font-size: 16px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
     .fs-close:hover { background: #374151; }
 
-    /* Print — only the paper survives */
+    /* Print — only the paper survives (works even if fullscreen overlay is open) */
     @media print {
       @page { size: A4; margin: 20mm; }
       html, body { margin: 0; background: #fff; height: auto !important; display: block !important; overflow: visible !important; color: #000; }
-      header, .feature-bar, .toolbar, .pane:first-child, .pane-header, footer { display: none !important; }
+      header, .feature-bar, .toolbar, .pane:first-child, .pane-header, footer, .fs-close, .splitter { display: none !important; }
+      #fullscreen-overlay { position: static !important; display: block !important; inset: auto !important; padding: 0 !important; margin: 0 !important; background: transparent !important; overflow: visible !important; }
       .main, .pane, .pane-body, #preview-container { display: block !important; height: auto !important; overflow: visible !important; padding: 0 !important; margin: 0 !important; background: #fff !important; }
       #preview { box-shadow: none; border-radius: 0; max-width: none; width: 100%; margin: 0; padding: 0; background: #fff; color: #000; }
       .copy-section-btn, .copy-code-btn { display: none !important; }
       .code-wrapper pre { background: #fff; color: #000; border: 1px solid #d1d5db; }
+      #preview .edc-social-btn { box-shadow: none; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
     }
   </style>
 </head>
@@ -311,6 +438,7 @@
     <span class="tagline" data-i18n="tagline">Reorganize what the AI handed you — the file stays a .md the AI can re-read.</span>
     <div class="head-controls">
       <span class="counts" id="counts"></span>
+      <button type="button" class="fs-head intro" data-action="fullscreen" data-i18n-title="fullscreen" title="Fullscreen"><span aria-hidden="true">⛶</span> <span data-i18n="fullscreen">Fullscreen</span></button>
       <select id="langSelect" data-i18n-title="langTitle" title="Language">
         <option value="en">English</option>
         <option value="pt">Português</option>
@@ -348,9 +476,8 @@
     <span class="group-label" data-i18n="grpMessage">Message</span>
     <button type="button" class="msg" data-action="paste-msg" data-i18n="pasteMsg">💬 Paste message</button>
     <button type="button" data-action="wrap-msg" data-i18n-title="wrapMsg" title="Wrap selection as message">&lt;&gt;</button>
-    <a href="https://x.com/paulohbrc?ref_src=twsrc%5Etfw" class="twitter-follow-button" data-show-count="false">Follow @paulohbrc</a><script async src="https://platform.x.com/widgets.js" charset="utf-8"></script>
 
-    <button type="button" data-action="sample" data-i18n="sample">Load sample</button>
+    <button type="button" data-action="sample" data-i18n="sample">Load Full Sample</button>
     <span class="spacer"></span>
     <select id="densitySelect" data-i18n-title="densityTitle" title="Reading density"
             style="border:none;padding:5px 10px;border-radius:4px;background:var(--toolbar-btn);color:var(--toolbar-fg);font-size:13px;cursor:pointer;">
@@ -372,7 +499,11 @@
           <button type="button" data-action="editor-zoom-out" data-i18n-title="zoomOut" title="Smaller text">A−</button>
           <button type="button" data-action="editor-zoom-in" data-i18n-title="zoomIn" title="Larger text">A+</button>
         </div>
-        <span class="pane-hint" data-i18n="dropHint">drop a .md file</span>
+        <div class="pane-open-row">
+          <button type="button" class="pane-btn open-md" data-action="open-md" data-i18n="openMd">Open</button>
+          <span class="pane-hint" data-i18n="dropHint">or drop a .md here</span>
+        </div>
+        <input type="file" id="md-file-input" accept=".md,.markdown,text/markdown,text/plain" />
       </div>
       <div class="pane-body"><textarea id="editor" spellcheck="false"></textarea></div>
       <div id="drop-zone"><span data-i18n="dropHere">Drop your .md here</span></div>
@@ -382,11 +513,13 @@
       <div class="pane-header pane-header-flex">
         <span data-i18n="panePreview">Preview</span>
         <div class="pane-zoom">
+          <button type="button" class="pane-btn fs-icon" data-action="fullscreen" data-i18n-title="fullscreen" title="Fullscreen" aria-label="Fullscreen">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          </button>
           <span class="zoom-label" id="previewZoomLabel">100%</span>
           <button type="button" data-action="preview-zoom-out" data-i18n-title="zoomOut" title="Smaller text">A−</button>
           <button type="button" data-action="preview-zoom-in" data-i18n-title="zoomIn" title="Larger text">A+</button>
         </div>
-        <button type="button" class="pane-btn fs intro" data-action="fullscreen" data-i18n-title="fullscreen" title="Fullscreen"><span aria-hidden="true">⛶</span> <span data-i18n="fullscreen">Fullscreen</span></button>
       </div>
       <div class="pane-body" id="preview-container"><div id="preview"></div></div>
     </div>
@@ -396,6 +529,20 @@
     <span data-i18n="footer">Processed locally in your browser. Nothing is sent to any server.</span>
     <span style="opacity:.4;"> · </span>
     <a class="source-link" href="https://web3.archi" target="_blank" rel="noopener noreferrer" data-i18n="source">Open source</a>
+    <span class="footer-social" aria-label="Social">
+      <a class="edc-social-btn x" href="https://x.com/paulohbrc" target="_blank" rel="noopener noreferrer" title="X · @paulohbrc" aria-label="X">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.727-8.835L1.254 2.25H8.08l4.253 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+      </a>
+      <a class="edc-social-btn ig" href="https://instagram.com/paulohbrc" target="_blank" rel="noopener noreferrer" title="Instagram · @paulohbrc" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+      </a>
+      <a class="edc-social-btn li" href="https://www.linkedin.com/in/paulohbrc" target="_blank" rel="noopener noreferrer" title="LinkedIn · /in/paulohbrc" aria-label="LinkedIn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 1.881 4.267 4.373v6.368zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      </a>
+      <a class="edc-social-btn gh" href="https://github.com/paulohbrc" target="_blank" rel="noopener noreferrer" title="GitHub · @paulohbrc" aria-label="GitHub">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+      </a>
+    </span>
   </footer>
 
   <!-- Fullscreen reading overlay: the live #preview is moved in here, then back on close. -->
@@ -453,10 +600,10 @@
         grpStructure: "Structure", list: "List", link: "Link (Ctrl+K)", grpMessage: "Message",
         pasteMsg: "💬 Paste message", wrapMsg: "Wrap selection as message",
         densityTitle: "Reading density", densDefault: "Default", densReading: "Reading", densCompact: "Compact",
-        copyMd: "📋 Copy MD", saveMd: "💾 Save .md", pdf: "🖨️ PDF", sample: "Load sample",
+        copyMd: "📋 Copy MD", saveMd: "💾 Save .md", pdf: "🖨️ PDF", sample: "Load Full Sample",
         sampleFail: "Could not load sample. Open via a local server or check assets/SAMPLE.*.md",
-        sampleLoaded: "Sample loaded", zoomIn: "Larger text", zoomOut: "Smaller text",
-        paneEditor: "Editor", panePreview: "Preview", fullscreen: "Fullscreen", source: "↓ Open source — download & run locally", dropHint: "drop a .md here", dropHere: "Drop your .md to load it",
+        sampleLoaded: "Full sample loaded", zoomIn: "Larger text", zoomOut: "Smaller text",
+        paneEditor: "Editor", panePreview: "Preview", fullscreen: "Fullscreen", source: "↓ Open source — download & run locally", openMd: "Open", dropHint: "or drop a .md here", dropHere: "Drop your .md to load it",
         footer: "Nothing you type is sent to our server.",
         modalTitle: "Add message", modalHint: "The text is wrapped in a :::message block.",
         cancel: "Cancel", add: "Add",
@@ -464,7 +611,11 @@
         copied: "Copied!", selectToWrap: "Select some text to wrap as a message.",
         featLoadFail: "Couldn't load this feature. Add the file under vendor/ to enable it offline.",
         markedMissing: "marked.min.js not found in vendor/. Run the download command from SPEC.md.",
-        demo: "# Edit Codes - MD Pro — how to use\n\nPaste here the **.md** the AI gave you — or **drag the .md file** onto this area. On the right you see it fully formatted, with the visual features turned on.\n\n## What is different here\n\nThis editor turns certain .md symbols into **visual functions**, just for you to see: tables, code blocks with a copy button, an automatic table of contents, and the green message box. But the file **stays a real .md** — when you send it back to the AI, it reads the plain text normally. The visuals are for humans; the content stays useful for the AI afterwards.\n\n> Here you only **see** what the AI wrote. Any HTML or script you paste **shows up as text** — nothing runs and nothing disappears. Only the editor's own visual features are applied. And nothing you type leaves your computer.\n\n:::message\nThe green box is for you to **mark a message you sent yourself** to the AI, keeping it apart from the rest of the chat.\n:::\n\n## Save and resume later\n\n1. Click **💾 Save .md** to download the clean file.\n2. To continue, **drag the .md back here** (or open the file and copy its content). The text appears without sending the file from your computer anywhere.\n\n```js\n// code blocks get their own copy button\nexample()\n```\n\n---\n\n*Use this space to paste your own AI-generated code. Be careful with code from others.*\n"
+        mobileHint: "Attention: if you're on a phone, tap «Fullscreen» to view it properly.",
+        thanksTitle: "Gratitude is the art of attracting good things.",
+        thanksSub: "If this project helped you in any way,",
+        thanksFollow: "Follow",
+        demo: "# Edit Codes - MD Pro — how to use\n\nPaste here the **.md** the AI gave you — or **drag the .md file** onto this area. On the right you see it fully formatted, with the visual features turned on.\n\n![edc-type-hint](edc-type-hint)\n\n## What is different here\n\nThis editor turns certain .md symbols into **visual functions**, just for you to see: tables, code blocks with a copy button, an automatic table of contents, and the green message box. But the file **stays a real .md** — when you send it back to the AI, it reads the plain text normally. The visuals are for humans; the content stays useful for the AI afterwards.\n\n> Here you only **see** what the AI wrote. Any HTML or script you paste **shows up as text** — nothing runs and nothing disappears. Only the editor's own visual features are applied. And nothing you type leaves your computer.\n\n:::message\nThe green box is for you to **mark a message you sent yourself** to the AI, keeping it apart from the rest of the chat.\n:::\n\n## Save and resume later\n\n1. Click **💾 Save .md** to download the clean file.\n2. To continue, **drag the .md back here** (or open the file and copy its content). The text appears without sending the file from your computer anywhere.\n\n```js\n// code blocks get their own copy button\nexample()\n```\n\n---\n\n*Use this space to paste your own AI-generated code. Be careful with code from others.*\n"
       },
       pt: {
         appTitle: "Edit Codes - MD Pro", tagline: "Reorganize o que a IA te entregou — o arquivo continua um .md que a IA relê.",
@@ -475,10 +626,10 @@
         grpStructure: "Estrutura", list: "Lista", link: "Link (Ctrl+K)", grpMessage: "Mensagem",
         pasteMsg: "💬 Colar mensagem", wrapMsg: "Transformar seleção em mensagem",
         densityTitle: "Densidade de leitura", densDefault: "Padrão", densReading: "Leitura", densCompact: "Compacto",
-        copyMd: "📋 Copiar MD", saveMd: "💾 Guardar .md", pdf: "🖨️ PDF", sample: "Carregar exemplo",
+        copyMd: "📋 Copiar MD", saveMd: "💾 Guardar .md", pdf: "🖨️ PDF", sample: "Carregar exemplo completo",
         sampleFail: "Não foi possível carregar o exemplo. Abra via servidor local ou verifique assets/SAMPLE.*.md",
-        sampleLoaded: "Exemplo carregado", zoomIn: "Aumentar texto", zoomOut: "Diminuir texto",
-        paneEditor: "Editor", panePreview: "Visualização", fullscreen: "Tela cheia", source: "↓ Código aberto — baixe e rode localmente", dropHint: "arraste um .md aqui", dropHere: "Solte o .md para carregar",
+        sampleLoaded: "Exemplo completo carregado", zoomIn: "Aumentar texto", zoomOut: "Diminuir texto",
+        paneEditor: "Editor", panePreview: "Visualização", fullscreen: "Tela cheia", source: "↓ Código aberto — baixe e rode localmente", openMd: "Abra", dropHint: "ou arraste um .md aqui", dropHere: "Solte o .md para carregar",
         footer: "Nada que você digitar é enviado ao nosso servidor.",
         modalTitle: "Adicionar mensagem", modalHint: "O texto é agrupado num bloco :::message.",
         cancel: "Cancelar", add: "Adicionar",
@@ -486,7 +637,11 @@
         copied: "Copiado!", selectToWrap: "Selecione um texto para transformar em mensagem.",
         featLoadFail: "Não foi possível carregar este recurso. Adicione o arquivo em vendor/ para ativá-lo offline.",
         markedMissing: "marked.min.js não encontrado em vendor/. Rode o comando de download do SPEC.md.",
-        demo: "# Edit Codes - MD Pro — como usar\n\nCole aqui o **.md** que a IA te entregou — ou **arraste o arquivo .md** para esta área. À direita você vê tudo já formatado, com os recursos visuais ativados.\n\n## O que muda aqui\n\nEste editor transforma certos símbolos do .md em **funções visuais**, só para você ver: tabelas, blocos de código com botão de copiar, índice automático e a caixa verde de mensagem. Mas o arquivo **continua sendo um .md de verdade** — quando você o envia de volta para a IA, ela lê o texto normalmente. O visual é para humanos; o conteúdo segue útil para a IA depois.\n\n> Aqui você só **vê** o que a IA escreveu. Qualquer HTML ou script colado **aparece como texto** — nada é executado e nada some. Só os recursos visuais do próprio editor são aplicados. E nada que você digitar sai do seu computador.\n\n:::message\nA caixa verde é para você **marcar uma mensagem que você mesmo enviou** para a IA, separando-a do resto da conversa.\n:::\n\n## Salvar e retomar depois\n\n1. Clique em **💾 Guardar .md** para baixar o arquivo limpo.\n2. Para continuar, **arraste o .md de volta para cá** (ou abra o arquivo e copie o conteúdo). O texto aparece sem enviar o arquivo do seu computador para lugar nenhum.\n\n```js\n// blocos de código ganham um botão de copiar\nexemplo()\n```\n\n---\n\n*Utilize esse espaço para colar seus próprios códigos gerados pela AI, tenha cuidado com códigos alheios.*\n"
+        mobileHint: "Atenção, se você está no celular, clique em «Tela Cheia» para visualizar corretamente.",
+        thanksTitle: "Agradecer é a arte de atrair coisas boas.",
+        thanksSub: "Se este projeto te ajudou de alguma forma,",
+        thanksFollow: "Siga",
+        demo: "# Edit Codes - MD Pro — como usar\n\nCole aqui o **.md** que a IA te entregou — ou **arraste o arquivo .md** para esta área. À direita você vê tudo já formatado, com os recursos visuais ativados.\n\n![edc-type-hint](edc-type-hint)\n\n## O que muda aqui\n\nEste editor transforma certos símbolos do .md em **funções visuais**, só para você ver: tabelas, blocos de código com botão de copiar, índice automático e a caixa verde de mensagem. Mas o arquivo **continua sendo um .md de verdade** — quando você o envia de volta para a IA, ela lê o texto normalmente. O visual é para humanos; o conteúdo segue útil para a IA depois.\n\n> Aqui você só **vê** o que a IA escreveu. Qualquer HTML ou script colado **aparece como texto** — nada é executado e nada some. Só os recursos visuais do próprio editor são aplicados. E nada que você digitar sai do seu computador.\n\n:::message\nA caixa verde é para você **marcar uma mensagem que você mesmo enviou** para a IA, separando-a do resto da conversa.\n:::\n\n## Salvar e retomar depois\n\n1. Clique em **💾 Guardar .md** para baixar o arquivo limpo.\n2. Para continuar, **arraste o .md de volta para cá** (ou abra o arquivo e copie o conteúdo). O texto aparece sem enviar o arquivo do seu computador para lugar nenhum.\n\n```js\n// blocos de código ganham um botão de copiar\nexemplo()\n```\n\n---\n\n*Utilize esse espaço para colar seus próprios códigos gerados pela AI, tenha cuidado com códigos alheios.*\n"
       },
       es: {
         appTitle: "Edit Codes - MD Pro", tagline: "Reorganiza lo que la IA te entregó — el archivo sigue siendo un .md que la IA puede releer.",
@@ -497,10 +652,10 @@
         grpStructure: "Estructura", list: "Lista", link: "Enlace (Ctrl+K)", grpMessage: "Mensaje",
         pasteMsg: "💬 Pegar mensaje", wrapMsg: "Convertir selección en mensaje",
         densityTitle: "Densidad de lectura", densDefault: "Estándar", densReading: "Lectura", densCompact: "Compacto",
-        copyMd: "📋 Copiar MD", saveMd: "💾 Guardar .md", pdf: "🖨️ PDF", sample: "Cargar ejemplo",
+        copyMd: "📋 Copiar MD", saveMd: "💾 Guardar .md", pdf: "🖨️ PDF", sample: "Cargar ejemplo completo",
         sampleFail: "No se pudo cargar el ejemplo. Abre vía servidor local o revisa assets/SAMPLE.*.md",
-        sampleLoaded: "Ejemplo cargado", zoomIn: "Aumentar texto", zoomOut: "Reducir texto",
-        paneEditor: "Editor", panePreview: "Vista previa", fullscreen: "Pantalla completa", source: "↓ Código abierto — descarga y ejecuta localmente", dropHint: "arrastra un .md aquí", dropHere: "Suelta el .md para cargarlo",
+        sampleLoaded: "Ejemplo completo cargado", zoomIn: "Aumentar texto", zoomOut: "Reducir texto",
+        paneEditor: "Editor", panePreview: "Vista previa", fullscreen: "Pantalla completa", source: "↓ Código abierto — descarga y ejecuta localmente", openMd: "Abrir", dropHint: "o arrastra un .md aquí", dropHere: "Suelta el .md para cargarlo",
         footer: "Nada de lo que escribas se envía a nuestro servidor.",
         modalTitle: "Añadir mensaje", modalHint: "El texto se envuelve en un bloque :::message.",
         cancel: "Cancelar", add: "Añadir",
@@ -508,7 +663,11 @@
         copied: "¡Copiado!", selectToWrap: "Selecciona texto para convertirlo en mensaje.",
         featLoadFail: "No se pudo cargar esta función. Añade el archivo en vendor/ para activarla sin conexión.",
         markedMissing: "No se encontró marked.min.js en vendor/. Ejecuta el comando de descarga de SPEC.md.",
-        demo: "# Edit Codes - MD Pro — cómo usar\n\nPega aquí el **.md** que te dio la IA — o **arrastra el archivo .md** a esta área. A la derecha lo ves ya formateado, con las funciones visuales activadas.\n\n## Qué cambia aquí\n\nEste editor convierte ciertos símbolos del .md en **funciones visuales**, solo para que tú las veas: tablas, bloques de código con botón de copiar, índice automático y la caja verde de mensaje. Pero el archivo **sigue siendo un .md de verdad** — cuando lo envías de vuelta a la IA, ella lee el texto con normalidad. Lo visual es para humanos; el contenido sigue siendo útil para la IA después.\n\n> Aquí solo **ves** lo que la IA escribió. Cualquier HTML o script que pegues **aparece como texto** — nada se ejecuta y nada desaparece. Solo se aplican las funciones visuales del propio editor. Y nada de lo que escribas sale de tu computadora.\n\n:::message\nLa caja verde es para que **marques un mensaje que tú mismo enviaste** a la IA, separándolo del resto de la conversación.\n:::\n\n## Guardar y retomar después\n\n1. Haz clic en **💾 Guardar .md** para descargar el archivo limpio.\n2. Para continuar, **arrastra el .md aquí de nuevo** (o abre el archivo y copia su contenido). El texto aparece sin enviar el archivo de tu computadora a ningún lugar.\n\n```js\n// los bloques de código reciben un botón de copiar\nejemplo()\n```\n\n---\n\n*Utiliza este espacio para pegar tus propios códigos generados por la IA, ten cuidado con códigos ajenos.*\n"
+        mobileHint: "Atención: si estás en el móvil, toca «Pantalla completa» para verlo correctamente.",
+        thanksTitle: "Agradecer es el arte de atraer cosas buenas.",
+        thanksSub: "Si este proyecto te ayudó de alguna forma,",
+        thanksFollow: "Sigue",
+        demo: "# Edit Codes - MD Pro — cómo usar\n\nPega aquí el **.md** que te dio la IA — o **arrastra el archivo .md** a esta área. A la derecha lo ves ya formateado, con las funciones visuales activadas.\n\n![edc-type-hint](edc-type-hint)\n\n## Qué cambia aquí\n\nEste editor convierte ciertos símbolos del .md en **funciones visuales**, solo para que tú las veas: tablas, bloques de código con botón de copiar, índice automático y la caja verde de mensaje. Pero el archivo **sigue siendo un .md de verdad** — cuando lo envías de vuelta a la IA, ella lee el texto con normalidad. Lo visual es para humanos; el contenido sigue siendo útil para la IA después.\n\n> Aquí solo **ves** lo que la IA escribió. Cualquier HTML o script que pegues **aparece como texto** — nada se ejecuta y nada desaparece. Solo se aplican las funciones visuales del propio editor. Y nada de lo que escribas sale de tu computadora.\n\n:::message\nLa caja verde es para que **marques un mensaje que tú mismo enviaste** a la IA, separándolo del resto de la conversación.\n:::\n\n## Guardar y retomar después\n\n1. Haz clic en **💾 Guardar .md** para descargar el archivo limpio.\n2. Para continuar, **arrastra el .md aquí de nuevo** (o abre el archivo y copia su contenido). El texto aparece sin enviar el archivo de tu computadora a ningún lugar.\n\n```js\n// los bloques de código reciben un botón de copiar\nejemplo()\n```\n\n---\n\n*Utiliza este espacio para pegar tus propios códigos generados por la IA, ten cuidado con códigos ajenos.*\n"
       }
     };
 
@@ -678,8 +837,48 @@
        buttons). Runs after innerHTML is set; all handlers are trusted.
     ===================================================================== */
     let tocData = [];
+    function clearTypeBanners() {
+      if (preview._typeTimers) {
+        preview._typeTimers.forEach((id) => clearTimeout(id));
+        preview._typeTimers = [];
+      }
+    }
+
+    function startTypeBanner(banner, fullText) {
+      const textEl = banner.querySelector(".edc-type-text");
+      if (!textEl) return;
+      let i = 0;
+      const step = () => {
+        if (i <= fullText.length) {
+          textEl.textContent = fullText.slice(0, i);
+          i += 1;
+          const delay = i < 4 ? 45 : 26;
+          const id = setTimeout(step, delay);
+          if (!preview._typeTimers) preview._typeTimers = [];
+          preview._typeTimers.push(id);
+        }
+      };
+      step();
+    }
+
+    // Replace the special edc-type-hint image with a red typewriter banner.
+    // Text always comes from i18n (not img alt) — quotes in alt break the HTML attribute.
+    function enhanceTypeHintBanners() {
+      clearTypeBanners();
+      preview.querySelectorAll('img[src="edc-type-hint"]').forEach((img) => {
+        const fullText = t("mobileHint");
+        const banner = document.createElement("div");
+        banner.className = "edc-type-banner";
+        banner.setAttribute("role", "status");
+        banner.innerHTML = '<span class="edc-type-text"></span><span class="edc-type-cursor" aria-hidden="true">▌</span>';
+        img.replaceWith(banner);
+        startTypeBanner(banner, fullText);
+      });
+    }
+
     function enrichPreview() {
       tocData = [];
+      enhanceTypeHintBanners();
 
       // Headings -> anchored section headers + copy-section buttons.
       preview.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((header, index) => {
@@ -741,6 +940,41 @@
 
       // Optional renderers (only if the user enabled + the lib loaded).
       runOptionalRenderers();
+
+      // Always at the end of the visual preview (not in the .md source / AI copy).
+      appendThanksFooter();
+    }
+
+    function appendThanksFooter() {
+      const existing = preview.querySelector(".edc-thanks");
+      if (existing) existing.remove();
+      const wrap = document.createElement("div");
+      wrap.className = "edc-thanks";
+      wrap.setAttribute("data-edc-ui", "1");
+      wrap.innerHTML =
+        '<hr class="edc-thanks-rule">' +
+        '<p class="edc-thanks-title"></p>' +
+        '<p class="edc-thanks-sub"></p>' +
+        '<p class="edc-thanks-follow"></p>' +
+        '<div class="edc-social">' +
+          '<a class="edc-social-btn x" href="https://x.com/paulohbrc" target="_blank" rel="noopener noreferrer" title="X · @paulohbrc" aria-label="X">' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.727-8.835L1.254 2.25H8.08l4.253 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>' +
+          '</a>' +
+          '<a class="edc-social-btn ig" href="https://instagram.com/paulohbrc" target="_blank" rel="noopener noreferrer" title="Instagram · @paulohbrc" aria-label="Instagram">' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>' +
+          '</a>' +
+          '<a class="edc-social-btn li" href="https://www.linkedin.com/in/paulohbrc" target="_blank" rel="noopener noreferrer" title="LinkedIn · /in/paulohbrc" aria-label="LinkedIn">' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 1.881 4.267 4.373v6.368zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>' +
+          '</a>' +
+          '<a class="edc-social-btn gh" href="https://github.com/paulohbrc" target="_blank" rel="noopener noreferrer" title="GitHub · @paulohbrc" aria-label="GitHub">' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>' +
+          '</a>' +
+        '</div>' +
+        '<hr class="edc-thanks-rule">';
+      wrap.querySelector(".edc-thanks-title").textContent = t("thanksTitle");
+      wrap.querySelector(".edc-thanks-sub").textContent = t("thanksSub");
+      wrap.querySelector(".edc-thanks-follow").textContent = t("thanksFollow");
+      preview.appendChild(wrap);
     }
 
     function copySection(headerEl, level) {
@@ -924,18 +1158,35 @@
     };
     const featureEnabled = { highlight: false, math: false, diagrams: false };
 
+    const scriptLoadCache = Object.create(null);
+    const cssLoadCache = Object.create(null);
     function loadScript(src) {
-      return new Promise((resolve, reject) => {
+      if (scriptLoadCache[src]) return scriptLoadCache[src];
+      scriptLoadCache[src] = new Promise((resolve, reject) => {
+        const existing = document.querySelector('script[src="' + src + '"]');
+        if (existing) {
+          if (existing.dataset.loaded === "1") { resolve(); return; }
+          existing.addEventListener("load", () => resolve());
+          existing.addEventListener("error", () => reject(new Error("load " + src)));
+          return;
+        }
         const s = document.createElement("script");
-        s.src = src; s.onload = resolve; s.onerror = () => reject(new Error("load " + src));
+        s.src = src;
+        s.onload = () => { s.dataset.loaded = "1"; resolve(); };
+        s.onerror = () => reject(new Error("load " + src));
         document.head.appendChild(s);
       });
+      return scriptLoadCache[src];
     }
     function loadCss(href) {
+      if (cssLoadCache[href]) return;
+      cssLoadCache[href] = true;
+      if (document.querySelector('link[href="' + href + '"]')) return;
       const l = document.createElement("link");
       l.rel = "stylesheet"; l.href = href; document.head.appendChild(l);
     }
-    async function enableFeature(name, checkbox) {
+    // skipUpdate: batch-enable several features (Load Full Sample) with one final render.
+    async function enableFeature(name, checkbox, skipUpdate) {
       const def = FEATURES[name];
       try {
         if (def.css) loadCss(def.css);
@@ -945,13 +1196,14 @@
         if (name === "diagrams" && window.mermaid) {
           window.mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
         }
-        updatePreview();
+        if (!skipUpdate) updatePreview();
       } catch (e) {
         featureEnabled[name] = false;
         if (checkbox) checkbox.checked = false;
         toast(t("featLoadFail"));
       }
     }
+    let mermaidRunId = 0;
     function runOptionalRenderers() {
       if (featureEnabled.math && window.renderMathInElement) {
         try {
@@ -974,9 +1226,30 @@
           nodes.push(div);
         });
         if (nodes.length) {
+          const runId = ++mermaidRunId;
           const theme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "default";
-          window.mermaid.initialize({ startOnLoad: false, securityLevel: "loose", theme });
-          void window.mermaid.run({ nodes }).catch(() => {});
+          try {
+            window.mermaid.initialize({
+              startOnLoad: false,
+              securityLevel: "loose",
+              theme,
+              // htmlLabels:false keeps text as SVG <text> so CSS can't zero out labels
+              flowchart: { useMaxWidth: true, htmlLabels: false, curve: "basis" },
+              sequence: { useMaxWidth: true }
+            });
+          } catch (e) {}
+          void window.mermaid.run({ nodes }).then(() => {
+            // Ignore stale async renders after a newer updatePreview wiped the DOM.
+            if (runId !== mermaidRunId) return;
+            nodes.forEach((n) => {
+              const svg = n.querySelector("svg");
+              if (!svg) return;
+              // Keep intrinsic size; only cap max-width so labels stay positioned correctly
+              svg.style.maxWidth = "100%";
+              svg.style.height = "auto";
+              svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+            });
+          }).catch(() => {});
         }
       }
     }
@@ -1029,6 +1302,21 @@
       }
     }
 
+    async function enableOptionalFeatures() {
+      const names = ["highlight", "math", "diagrams"];
+      for (const name of names) {
+        const cb = document.querySelector('[data-feature="' + name + '"]');
+        if (!cb) continue;
+        if (featureEnabled[name]) {
+          cb.checked = true;
+          continue;
+        }
+        cb.checked = true;
+        // Skip intermediate previews — one final render after all libs are ready.
+        await enableFeature(name, cb, true);
+      }
+    }
+
     async function loadSample(notify) {
       const tried = [];
       let text = null;
@@ -1048,7 +1336,9 @@
       showingSample = true;
       editor.value = text;
       History.save();
-      updatePreview();
+      // Full sample: turn on highlight + math + diagrams so examples render fully.
+      await enableOptionalFeatures();
+      updatePreview(); // single render with all features active
       if (notify) toast(t("sampleLoaded"));
       return true;
     }
@@ -1078,6 +1368,7 @@
       "editor-zoom-in": () => changeZoom("editor", 1), "editor-zoom-out": () => changeZoom("editor", -1),
       "preview-zoom-in": () => changeZoom("preview", 1), "preview-zoom-out": () => changeZoom("preview", -1),
       fullscreen: () => openFullscreen(), "fullscreen-close": () => closeFullscreen(),
+      "open-md": () => openMdFilePicker(),
       "theme-toggle": () => setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"),
       "modal-cancel": () => closeModal(), "modal-add": () => addFromModal()
     };
@@ -1168,7 +1459,7 @@
       splitter.addEventListener("pointercancel", stop);
     })();
 
-    // Load text into the editor (drag & drop); strips any legacy embedded button.
+    // Load text into the editor (drag & drop / file picker); strips any legacy embedded button.
     function loadContent(text) {
       showingDemo = false;
       showingSample = false;
@@ -1177,6 +1468,28 @@
       updatePreview();
       persist();
     }
+
+    function readMdFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => loadContent(String(reader.result || ""));
+      reader.readAsText(file);
+    }
+
+    function openMdFilePicker() {
+      const input = document.getElementById("md-file-input");
+      if (input) input.click();
+    }
+
+    (function setupFileOpen() {
+      const input = document.getElementById("md-file-input");
+      if (!input) return;
+      input.addEventListener("change", () => {
+        const file = input.files && input.files[0];
+        readMdFile(file);
+        input.value = ""; // allow re-opening the same file
+      });
+    })();
 
     (function setupDropZone() {
       const pane = document.getElementById("editor-pane");
@@ -1193,11 +1506,7 @@
       pane.addEventListener("drop", (e) => {
         if (!hasFiles(e)) return;
         e.preventDefault(); zone.classList.remove("show");
-        const file = e.dataTransfer.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => loadContent(String(reader.result || ""));
-        reader.readAsText(file);
+        readMdFile(e.dataTransfer.files[0]);
       });
     })();
 
@@ -1235,6 +1544,13 @@
         History.save();
         updatePreview();
       }
+
+      // Open reading view immediately so mobile users see the organized preview first.
+      openFullscreen();
+      // After a few blinks, drop the attention class so the header button settles.
+      setTimeout(() => {
+        document.querySelectorAll(".fs-head.intro, .pane-btn.fs.intro").forEach((el) => el.classList.remove("intro"));
+      }, 1800);
     })();
   })();
   </script>
