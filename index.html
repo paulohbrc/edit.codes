@@ -1436,6 +1436,22 @@
 
     boot();
   })();
+
+    (function initGhostPing() {
+    const startTime = Date.now();
+
+    document.addEventListener('visibilitychange', function() {
+      // Dispara apenas quando o usuário oculta a aba ou fecha o navegador
+      if (document.visibilityState === 'hidden') {
+        const durationInSeconds = Math.round((Date.now() - startTime) / 1000);
+        
+        // Empacota e envia silenciosamente para o Worker interceptar
+        const data = new Blob([JSON.stringify({ t: durationInSeconds })], { type: 'application/json' });
+        navigator.sendBeacon('/_telemetry', data);
+      }
+    });
+  })();
+    
   </script>
 </body>
 </html>
