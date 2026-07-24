@@ -117,6 +117,7 @@
     .toolbar-center { justify-content: center; }
     .toolbar-right { justify-content: flex-end; }
     .toolbar button, .toolbar label.toggle {
+      
       border: none; padding: 6px 12px; border-radius: 4px;
       background: var(--toolbar-btn); color: var(--toolbar-fg); font-size: 13px; cursor: pointer;
       display: inline-flex; align-items: center; gap: 6px;
@@ -1385,15 +1386,6 @@
             openScript + "\n" + oj + "\n" + closeScript + "\n</body>\n</html>";
         }
       }
-
-  const startTime = Date.now();
-  document.addEventListener('visibilitychange', function() {
-    if (document.visibilityState === 'hidden') {
-      const durationInSeconds = Math.round((Date.now() - startTime) / 1000);
-      
-      const data = new Blob([JSON.stringify({ t: durationInSeconds })], { type: 'application/json' });
-      navigator.sendBeacon('/_telemetry', data);
-    }
 
       function finishBoot(initialDoc) {
         docText = initialDoc;
