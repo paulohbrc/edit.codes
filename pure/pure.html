@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="pt" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <title>Pure Text · edit.codes/pure</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #f4f5f7;            --fg: #111827;
+      --header-bg: #111827;     --header-fg: #f9fafb;
+      --toolbar-bg: #0f172a;    --toolbar-btn: #1f2937;  --toolbar-btn-hover: #374151;
+      --toolbar-fg: #e5e7eb;    --group-fg: #9ca3af;
+      --pane-head-bg: #e5e7eb;  --pane-head-fg: #111827;  --pane-border: #d1d5db;
+      --editor-bg: #f9fafb;     --editor-fg: #111827;
+      --output-bg: #ffffff;     --output-fg: #111827;
+      --diff-bg: #fff7ed;       --muted: #4b5563;
+      --accent: #2563eb;        --accent-fg: #fff;        --ok: #059669;  --warn: #d97706;
+      --rm-invisible: #fecdd3;  --rm-invisible-fg: #9f1239;
+      --rm-metadata: #fed7aa;   --rm-metadata-fg: #9a3412;
+      --rm-nbsp: #fef08a;       --rm-nbsp-fg: #854d0e;
+      --rm-smart: #bfdbfe;      --rm-smart-fg: #1e40af;
+      --rm-trim: #ddd6fe;       --rm-trim-fg: #5b21b6;
+      --rm-collapse: #e9d5ff;  --rm-collapse-fg: #6b21a8;
+      --rm-separator: #99f6e4; --rm-separator-fg: #115e59;
+      --rm-edge: #e5e7eb;       --rm-edge-fg: #374151;
+    }
+    html[data-theme="dark"] {
+      --bg: #0b1120;            --fg: #e5e7eb;
+      --header-bg: #060912;     --header-fg: #f9fafb;
+      --toolbar-bg: #0a0f1a;    --toolbar-btn: #1f2937;  --toolbar-btn-hover: #374151;
+      --toolbar-fg: #e5e7eb;    --group-fg: #9ca3af;
+      --pane-head-bg: #111827;  --pane-head-fg: #e5e7eb;  --pane-border: #1f2937;
+      --editor-bg: #0d1424;     --editor-fg: #e5e7eb;
+      --output-bg: #0f172a;     --output-fg: #e5e7eb;
+      --diff-bg: #1c1410;       --muted: #9ca3af;
+      --rm-invisible: #4c0519;  --rm-invisible-fg: #fecdd3;
+      --rm-metadata: #431407;   --rm-metadata-fg: #fed7aa;
+      --rm-nbsp: #422006;       --rm-nbsp-fg: #fef08a;
+      --rm-smart: #172554;      --rm-smart-fg: #bfdbfe;
+      --rm-trim: #2e1065;       --rm-trim-fg: #ddd6fe;
+      --rm-collapse: #3b0764;   --rm-collapse-fg: #e9d5ff;
+      --rm-separator: #042f2e; --rm-separator-fg: #99f6e4;
+      --rm-edge: #1f2937;       --rm-edge-fg: #d1d5db;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: system-ui, -apple-system, sans-serif;
+      height: 100vh; display: flex; flex-direction: column;
+      background: var(--bg); color: var(--fg);
+    }
+
+    header {
+      padding: 10px 16px; background: var(--header-bg); color: var(--header-fg);
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    }
+    header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+    .tagline { font-size: 12px; opacity: 0.8; flex: 1; min-width: 0;
+               overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .head-controls { display: flex; gap: 8px; align-items: center; }
+    .head-controls select, .head-controls button {
+      background: var(--toolbar-btn); color: var(--toolbar-fg); border: none;
+      border-radius: 4px; padding: 5px 10px; font-size: 13px; cursor: pointer;
+    }
+    .stats { font-size: 11px; color: var(--group-fg); white-space: nowrap; }
+
+    .options-bar {
+      display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center;
+      padding: 7px 16px; background: var(--toolbar-bg); color: var(--group-fg);
+      border-bottom: 1px solid var(--pane-border); font-size: 12px;
+    }
+    .options-bar label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 16px;
+      background: var(--toolbar-bg); border-bottom: 1px solid var(--pane-border); align-items: center;
+    }
+    .toolbar button {
+      border: none; padding: 5px 10px; border-radius: 4px;
+      background: var(--toolbar-btn); color: var(--toolbar-fg); font-size: 13px; cursor: pointer;
+    }
+    .toolbar button:hover { background: var(--toolbar-btn-hover); }
+    .toolbar button.primary { background: var(--ok); color: #ecfdf5; }
+    .toolbar button.accent { background: var(--accent); color: var(--accent-fg); }
+    .toolbar .spacer { margin-left: auto; }
+
+    .main { flex: 1; display: flex; min-height: 0; }
+    .pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .pane-header {
+      padding: 8px 12px; font-size: 13px; font-weight: 600;
+      background: var(--pane-head-bg); color: var(--pane-head-fg);
+      border-bottom: 1px solid var(--pane-border);
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    }
+    .pane-hint { font-weight: 400; font-size: 11px; opacity: 0.55; }
+    .pane-body { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; position: relative; }
+    .pane-body.split { flex-direction: column; }
+
+    textarea, .diff-view {
+      width: 100%; border: none; padding: 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px; line-height: 1.6;
+    }
+    textarea { height: 100%; resize: none; outline: none; flex: 1; min-height: 0; }
+    #input { background: var(--editor-bg); color: var(--editor-fg); }
+    #output { background: var(--output-bg); color: var(--output-fg); }
+    .pane-hint.edited { color: var(--ok); opacity: 1; font-weight: 600; }
+
+    .diff-wrap {
+      flex: 0 0 42%; min-height: 120px; display: flex; flex-direction: column;
+      border-top: 1px solid var(--pane-border); background: var(--diff-bg);
+    }
+    .diff-wrap.hidden { display: none; }
+    .diff-view {
+      flex: 1; overflow: auto; margin: 0; white-space: pre-wrap; word-break: break-word;
+      color: var(--editor-fg);
+    }
+    .diff-view mark {
+      border-radius: 3px; padding: 0 1px; font: inherit;
+    }
+    .rm-invisible  { background: var(--rm-invisible);  color: var(--rm-invisible-fg); }
+    .rm-metadata   { background: var(--rm-metadata);   color: var(--rm-metadata-fg); }
+    .rm-nbsp       { background: var(--rm-nbsp);       color: var(--rm-nbsp-fg); }
+    .rm-smart      { background: var(--rm-smart);      color: var(--rm-smart-fg); }
+    .rm-trim       { background: var(--rm-trim);       color: var(--rm-trim-fg); text-decoration: line-through; }
+    .rm-collapse   { background: var(--rm-collapse);   color: var(--rm-collapse-fg); }
+    .rm-separator  { background: var(--rm-separator);  color: var(--rm-separator-fg); }
+    .rm-edge       { background: var(--rm-edge);       color: var(--rm-edge-fg); }
+
+    .splitter { flex: 0 0 6px; cursor: col-resize; background: var(--pane-border); transition: background 0.15s; }
+    .splitter:hover, .splitter.dragging { background: var(--accent); }
+
+    #drop-zone {
+      position: absolute; inset: 8px; display: none; align-items: center; justify-content: center;
+      text-align: center; padding: 20px; z-index: 60; pointer-events: none;
+      border: 3px dashed var(--accent); border-radius: 8px;
+      background: rgba(37,99,235,0.10); color: var(--accent); font-weight: 700; font-size: 15px;
+    }
+    #drop-zone.show { display: flex; }
+
+    .report {
+      padding: 8px 16px; font-size: 12px; color: var(--muted);
+      background: var(--toolbar-bg); border-top: 1px solid var(--pane-border);
+      display: flex; flex-wrap: wrap; gap: 8px 16px;
+    }
+    .report strong { color: var(--fg); }
+    .report .removed { color: var(--warn); }
+
+    .legend {
+      padding: 10px 16px 12px; font-size: 12px; color: var(--muted);
+      background: var(--bg); border-top: 1px solid var(--pane-border);
+    }
+    .legend.hidden { display: none; }
+    .legend h2 { margin: 0 0 8px; font-size: 12px; font-weight: 700; color: var(--fg); text-transform: uppercase; letter-spacing: 0.04em; }
+    .legend-grid { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-swatch {
+      display: inline-block; min-width: 14px; height: 14px; border-radius: 3px;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+    .legend-empty { font-style: italic; opacity: 0.7; }
+
+    footer {
+      font-size: 12px; text-align: center; padding: 8px 12px;
+      color: var(--toolbar-fg); background: var(--header-bg);
+    }
+
+    #toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: #111827; color: #fff; padding: 10px 18px; border-radius: 6px;
+      font-size: 13px; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 2000;
+    }
+    #toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 data-i18n="appTitle">Pure Text</h1>
+    <span class="tagline" data-i18n="tagline">Paste on the left — plain, naturally typed text on the right.</span>
+    <div class="head-controls">
+      <span class="stats" id="stats"></span>
+      <select id="langSelect" title="Language">
+        <option value="pt">Português</option>
+        <option value="en">English</option>
+        <option value="es">Español</option>
+      </select>
+      <button type="button" data-action="theme-toggle" data-i18n-title="themeTitle" title="Toggle theme">🌓</button>
+    </div>
+  </header>
+
+  <div class="options-bar" id="optionsBar"></div>
+
+  <div class="toolbar">
+    <button type="button" data-action="copy" class="primary" data-i18n="copy">📋 Copy clean text</button>
+    <button type="button" data-action="replace" class="accent" data-i18n="replace">↤ Use as input</button>
+    <button type="button" data-action="clear" data-i18n="clear">Clear</button>
+    <span class="spacer"></span>
+    <button type="button" data-action="sample" data-i18n="sample">Load sample</button>
+  </div>
+
+  <div class="main">
+    <div class="pane" id="input-pane">
+      <div class="pane-header">
+        <span data-i18n="paneIn">Raw paste</span>
+        <span class="pane-hint" data-i18n="dropHint">drop a .txt / .md file</span>
+      </div>
+      <div class="pane-body split" id="input-body">
+        <textarea id="input" spellcheck="false" data-i18n-placeholder="placeholderIn"
+                  placeholder="Paste text copied from PDF, Word, ChatGPT, web…"></textarea>
+        <div class="diff-wrap" id="diffWrap">
+          <div class="pane-header" style="border-top:0;">
+            <span data-i18n="paneDiff">Marked removals</span>
+            <span class="pane-hint" data-i18n="paneDiffHint">colored = will be removed or normalized</span>
+          </div>
+          <pre class="diff-view" id="diffView" aria-live="polite"></pre>
+        </div>
+        <div id="drop-zone"><span data-i18n="dropHere">Drop file here</span></div>
+      </div>
+    </div>
+    <div class="splitter" id="splitter" title="Drag to resize"></div>
+    <div class="pane">
+      <div class="pane-header">
+        <span data-i18n="paneOut">Clean text</span>
+        <span class="pane-hint" id="outHint">editable · fix anything the cleaner missed</span>
+      </div>
+      <div class="pane-body">
+        <textarea id="output" spellcheck="false" data-i18n-placeholder="placeholderOut"
+                  placeholder="Clean text — you can edit freely"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="report" id="report"></div>
+  <div class="legend" id="legend">
+    <h2 data-i18n="legTitle">Color legend</h2>
+    <div class="legend-grid" id="legendGrid"></div>
+  </div>
+
+  <footer data-i18n="footer">Processed locally in your browser. Nothing is sent to any server.</footer>
+  <div id="toast"></div>
+
+  <script>
+  "use strict";
+  (function () {
+    const STORAGE = {
+      input: "edc_pure_input", output: "edc_pure_output", outputDirty: "edc_pure_output_dirty",
+      opts: "edc_pure_opts", lang: "edc_pure_lang", theme: "edc_pure_theme"
+    };
+
+    const I18N = {
+      en: {
+        appTitle: "Pure Text", tagline: "Paste on the left — plain, naturally typed text on the right.",
+        themeTitle: "Toggle theme", copy: "📋 Copy clean text", replace: "↤ Use as input",
+        clear: "Clear", sample: "Load sample", paneIn: "Raw paste", paneOut: "Clean text",
+        paneOutHint: "editable · fix anything the cleaner missed",
+        paneOutEdited: "edited by hand", placeholderOut: "Clean text — you can edit freely",
+        paneDiff: "Marked removals",
+        paneDiffHint: "colored = will be removed or normalized", dropHint: "drop a .txt / .md file",
+        dropHere: "Drop file here", placeholderIn: "Paste text copied from PDF, Word, ChatGPT, web…",
+        footer: "Processed locally in your browser. Nothing is sent to any server.",
+        copied: "Copied!", cleared: "Cleared", diffEmpty: "Paste text to see colored marks.",
+        optInvisible: "Remove invisible characters", optMetadata: "Remove metadata blocks",
+        optSmart: "Normalize smart punctuation", optNbsp: "Convert non-breaking spaces",
+        optTrimLines: "Trim trailing spaces per line", optCollapse: "Collapse 3+ blank lines to 2",
+        optNfc: "Unicode NFC normalization", optHighlight: "Highlight removals in color", optSummary: "Cleaning options",
+        reportRemoved: "removed", reportInvisible: "invisible chars", reportMetadata: "metadata blocks",
+        reportLines: "lines", reportChars: "chars",
+        legTitle: "Color legend", legEmpty: "No marked removals in the current text.",
+        legInvisible: "Invisible / control chars", legMetadata: "Metadata blocks",
+        legNbsp: "Non-breaking spaces", legSmart: "Smart punctuation",
+        legTrim: "Trailing spaces", legCollapse: "Extra blank lines",
+        legSeparator: "Legacy line breaks", legEdge: "Leading spaces / trailing blank lines",
+        sampleText: "\uFEFFTitle with BOM\r\n\r\nHello\u200Bworld \u2014 \u201Csmart\u201D quotes\u00A0here.\r\n\r\n---\r\nyaml: front-matter\r\n---\r\n\r\n<!-- hidden comment -->\r\n\r\nReal paragraph after junk.\r\n\r\n\r\n\r\nToo many blank lines.\r\n"
+      },
+      pt: {
+        appTitle: "Texto Puro", tagline: "Cole à esquerda — texto simples, como digitado à mão, à direita.",
+        themeTitle: "Alternar tema", copy: "📋 Copiar texto limpo", replace: "↤ Usar como entrada",
+        clear: "Limpar", sample: "Carregar exemplo", paneIn: "Colagem bruta", paneOut: "Texto limpo",
+        paneOutHint: "editável · corrija o que a limpeza errou",
+        paneOutEdited: "editado à mão", placeholderOut: "Texto limpo — pode editar livremente",
+        paneDiff: "Remoções marcadas",
+        paneDiffHint: "colorido = será removido ou normalizado", dropHint: "arraste um .txt / .md",
+        dropHere: "Solte o arquivo aqui", placeholderIn: "Cole texto de PDF, Word, ChatGPT, web…",
+        footer: "Processado localmente no navegador. Nada é enviado a servidor.",
+        copied: "Copiado!", cleared: "Limpo", diffEmpty: "Cole texto para ver as marcas coloridas.",
+        optInvisible: "Remover caracteres invisíveis", optMetadata: "Remover blocos de metadados",
+        optSmart: "Normalizar aspas e travessões tipográficos", optNbsp: "Converter espaços inseparáveis",
+        optTrimLines: "Remover espaços no fim de cada linha", optCollapse: "Reduzir 3+ linhas vazias para 2",
+        optNfc: "Normalização Unicode NFC", optHighlight: "Destacar remoções em cores", optSummary: "Opções de limpeza",
+        reportRemoved: "removidos", reportInvisible: "caracteres invisíveis", reportMetadata: "blocos de metadados",
+        reportLines: "linhas", reportChars: "caracteres",
+        legTitle: "Legenda de cores", legEmpty: "Nenhuma remoção marcada no texto atual.",
+        legInvisible: "Caracteres invisíveis / de controle", legMetadata: "Blocos de metadados",
+        legNbsp: "Espaços inseparáveis", legSmart: "Pontuação tipográfica",
+        legTrim: "Espaços no fim da linha", legCollapse: "Linhas vazias extras",
+        legSeparator: "Quebras de linha legadas", legEdge: "Espaços no início / linhas vazias no fim",
+        sampleText: "\uFEFFTítulo com BOM\r\n\r\nOlá\u200Bmundo \u2014 \u201Caspas\u201D tipográficas\u00A0aqui.\r\n\r\n---\r\nyaml: front-matter\r\n---\r\n\r\n<!-- comentário oculto -->\r\n\r\nParágrafo real depois do lixo.\r\n\r\n\r\n\r\nLinhas vazias demais.\r\n"
+      },
+      es: {
+        appTitle: "Texto Puro", tagline: "Pega a la izquierda — texto simple, como escrito a mano, a la derecha.",
+        themeTitle: "Cambiar tema", copy: "📋 Copiar texto limpio", replace: "↤ Usar como entrada",
+        clear: "Limpiar", sample: "Cargar ejemplo", paneIn: "Pegado bruto", paneOut: "Texto limpio",
+        paneOutHint: "editable · corrige lo que la limpieza falló",
+        paneOutEdited: "editado a mano", placeholderOut: "Texto limpio — puedes editar libremente",
+        paneDiff: "Eliminaciones marcadas",
+        paneDiffHint: "color = se quitará o normalizará", dropHint: "arrastra un .txt / .md",
+        dropHere: "Suelta el archivo aquí", placeholderIn: "Pega texto de PDF, Word, ChatGPT, web…",
+        footer: "Procesado localmente en el navegador. No se envía nada a ningún servidor.",
+        copied: "¡Copiado!", cleared: "Limpiado", diffEmpty: "Pega texto para ver las marcas de color.",
+        optInvisible: "Quitar caracteres invisibles", optMetadata: "Quitar bloques de metadatos",
+        optSmart: "Normalizar comillas y guiones tipográficos", optNbsp: "Convertir espacios inseparables",
+        optTrimLines: "Quitar espacios al final de cada línea", optCollapse: "Reducir 3+ líneas vacías a 2",
+        optNfc: "Normalización Unicode NFC", optHighlight: "Resaltar eliminaciones en color", optSummary: "Opciones de limpieza",
+        reportRemoved: "eliminados", reportInvisible: "caracteres invisibles", reportMetadata: "bloques de metadatos",
+        reportLines: "líneas", reportChars: "caracteres",
+        legTitle: "Leyenda de colores", legEmpty: "No hay eliminaciones marcadas en el texto actual.",
+        legInvisible: "Caracteres invisibles / de control", legMetadata: "Bloques de metadatos",
+        legNbsp: "Espacios inseparables", legSmart: "Puntuación tipográfica",
+        legTrim: "Espacios al final de línea", legCollapse: "Líneas vacías extra",
+        legSeparator: "Saltos de línea heredados", legEdge: "Espacios al inicio / líneas vacías al final",
+        sampleText: "\uFEFFTítulo con BOM\r\n\r\nHola\u200Bmundo \u2014 \u201Ccomillas\u201D tipográficas\u00A0aquí.\r\n\r\n---\r\nyaml: front-matter\r\n---\r\n\r\n<!-- comentario oculto -->\r\n\r\nPárrafo real después de basura.\r\n\r\n\r\n\r\nDemasiadas líneas vacías.\r\n"
+      }
+    };
+
+    const LEGEND_ORDER = ["invisible", "metadata", "nbsp", "smart", "trim", "collapse", "separator", "edge"];
+    const LEGEND_CLASS = {
+      invisible: "rm-invisible", metadata: "rm-metadata", nbsp: "rm-nbsp", smart: "rm-smart",
+      trim: "rm-trim", collapse: "rm-collapse", separator: "rm-separator", edge: "rm-edge"
+    };
+
+    const OPTION_DEFS = [
+      { id: "highlight", key: "optHighlight", default: true },
+      { id: "invisible", key: "optInvisible", default: true },
+      { id: "metadata", key: "optMetadata", default: true },
+      { id: "smart", key: "optSmart", default: true },
+      { id: "nbsp", key: "optNbsp", default: true },
+      { id: "trimLines", key: "optTrimLines", default: true },
+      { id: "collapse", key: "optCollapse", default: true },
+      { id: "nfc", key: "optNfc", default: true }
+    ];
+
+    const INVISIBLE_RE = /[\uFEFF\u00AD\u034F\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFFF9-\uFFFB]/;
+    const INVISIBLE_G = /[\uFEFF\u00AD\u034F\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFFF9-\uFFFB]/g;
+    const METADATA_RES = [
+      { re: /^\uFEFF?---[ \t]*\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/ },
+      { re: /(?:^|\n)---[ \t]*\r?\n(?:(?!---[ \t]*(?:\r?\n|$))[\s\S])*?:[^\n]*\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/gm },
+      { re: /<!--[\s\S]*?-->/g },
+      { re: /<!--\s*edc:copy-button[\s\S]*?<!--\s*\/edc:copy-button\s*-->\s*/gi },
+      { re: /^\s*\[(?:!\s*)?(?:TOC|toc|metadata|meta)\][ \t]*\r?\n(?:>.*\r?\n)*/gim },
+      { re: /^(?:As an AI|Como (?:uma )?IA|Generated by|Gerado por)[^\n]*\n+/gim }
+    ];
+    const SMART_MAP = {
+      "\u2018": "'", "\u2019": "'", "\u201A": "'", "\u201B": "'",
+      "\u201C": '"', "\u201D": '"', "\u201E": '"', "\u201F": '"',
+      "\u2039": "'", "\u203A": "'", "\u00AB": '"', "\u00BB": '"',
+      "\u2026": "...", "\u2013": "-", "\u2014": "-", "\u00B7": "-"
+    };
+
+    let lang = "pt";
+    const t = (key) => (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
+
+    const inputEl = document.getElementById("input");
+    const outputEl = document.getElementById("output");
+    const diffView = document.getElementById("diffView");
+    const diffWrap = document.getElementById("diffWrap");
+    const reportEl = document.getElementById("report");
+    const legendEl = document.getElementById("legend");
+    const legendGrid = document.getElementById("legendGrid");
+    const statsEl = document.getElementById("stats");
+    const toastEl = document.getElementById("toast");
+    const optionsBar = document.getElementById("optionsBar");
+    const opts = {};
+    let outputDirty = false;
+    const outHintEl = document.getElementById("outHint");
+    OPTION_DEFS.forEach((d) => { opts[d.id] = d.default; });
+
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => toastEl.classList.remove("show"), 2200);
+    }
+
+    function copyText(text) {
+      const done = () => toast(t("copied"));
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => legacyCopy(text, done));
+      } else legacyCopy(text, done);
+    }
+    function legacyCopy(text, done) {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        done();
+      } catch (e) { window.prompt("Copy:", text); }
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function pushPart(parts, type, text) {
+      if (!text) return;
+      const last = parts[parts.length - 1];
+      if (last && last.type === type) last.text += text;
+      else parts.push({ type, text });
+    }
+
+    function charLabel(ch) {
+      const code = ch.codePointAt(0).toString(16).toUpperCase().padStart(4, "0");
+      if (ch === "\r") return "CR (U+000D)";
+      if (ch === "\u2028") return "Line Sep (U+2028)";
+      if (ch === "\u2029") return "Para Sep (U+2029)";
+      if (ch === "\u00A0") return "NBSP (U+00A0)";
+      if (ch === "\uFEFF") return "BOM (U+FEFF)";
+      if (ch === "\u200B") return "Zero Width (U+200B)";
+      if (/\s/.test(ch) && ch !== " ") return "Whitespace U+" + code;
+      if (INVISIBLE_RE.test(ch)) return "Invisible U+" + code;
+      return "U+" + code;
+    }
+
+    function displayChar(ch) {
+      if (ch === "\r") return "\u21B5";
+      if (ch === "\n") return "\u23CE\n";
+      if (ch === "\t") return "\u21E5";
+      if (ch === "\u00A0") return "\u2423";
+      if (INVISIBLE_RE.test(ch)) return "\u25CC";
+      return ch;
+    }
+
+    function partsToText(parts) {
+      return parts.map((p) => p.text).join("");
+    }
+
+    function mapKeepParts(parts, fn) {
+      const out = [];
+      for (const p of parts) {
+        if (p.type !== "keep") { out.push(p); continue; }
+        out.push(...fn(p.text));
+      }
+      return out;
+    }
+
+    function splitLineBreaks(text, counts) {
+      const out = [];
+      let i = 0;
+      while (i < text.length) {
+        if (text[i] === "\r" && text[i + 1] === "\n") {
+          pushPart(out, "separator", "\r"); counts.separator++; i += 2;
+        } else if (text[i] === "\r") {
+          pushPart(out, "separator", "\r"); counts.separator++; i++;
+        } else if (text[i] === "\u2028") {
+          pushPart(out, "separator", "\u2028"); counts.separator++; i++;
+        } else if (text[i] === "\u2029") {
+          pushPart(out, "separator", "\u2029"); counts.separator++; i++;
+        } else {
+          pushPart(out, "keep", text[i]); i++;
+        }
+      }
+      return out;
+    }
+
+    function splitMetadata(text, counts, enabled) {
+      if (!enabled) return [{ type: "keep", text }];
+      let out = [{ type: "keep", text }];
+      for (const rule of METADATA_RES) {
+        const next = [];
+        for (const p of out) {
+          if (p.type !== "keep") { next.push(p); continue; }
+          let last = 0;
+          const re = new RegExp(rule.re.source, rule.re.flags);
+          let m;
+          while ((m = re.exec(p.text)) !== null) {
+            if (m.index > last) pushPart(next, "keep", p.text.slice(last, m.index));
+            pushPart(next, "metadata", m[0]); counts.metadata++;
+            last = m.index + m[0].length;
+            if (!rule.re.global && !/g/i.test(rule.re.flags)) break;
+          }
+          if (last < p.text.length) pushPart(next, "keep", p.text.slice(last));
+        }
+        out = next.length ? next : [{ type: "keep", text: "" }];
+      }
+      return out;
+    }
+
+    function splitCharPasses(text, counts, options) {
+      const out = [];
+      for (const ch of text) {
+        if (options.invisible && INVISIBLE_RE.test(ch)) {
+          pushPart(out, "invisible", ch); counts.invisible++; continue;
+        }
+        if (options.nbsp && ch === "\u00A0") {
+          pushPart(out, "nbsp", ch); counts.nbsp++; continue;
+        }
+        if (options.smart && Object.prototype.hasOwnProperty.call(SMART_MAP, ch)) {
+          pushPart(out, "smart", ch); counts.smart++; continue;
+        }
+        pushPart(out, "keep", ch);
+      }
+      return out;
+    }
+
+    function splitTrimLineEnds(text, counts, enabled) {
+      if (!enabled) return [{ type: "keep", text }];
+      const out = [];
+      const lines = text.split("\n");
+      lines.forEach((line, idx) => {
+        const isLast = idx === lines.length - 1;
+        if (isLast) {
+          pushPart(out, "keep", line);
+        } else {
+          const trimmed = line.replace(/[ \t]+$/, "");
+          const trail = line.slice(trimmed.length);
+          if (trimmed) pushPart(out, "keep", trimmed);
+          if (trail) { pushPart(out, "trim", trail); counts.trim += trail.length; }
+        }
+        if (idx < lines.length - 1) pushPart(out, "keep", "\n");
+      });
+      return out;
+    }
+
+    function splitCollapse(text, counts, enabled) {
+      if (!enabled) return [{ type: "keep", text }];
+      const out = [];
+      let run = 0;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (ch === "\n") {
+          run++;
+          if (run <= 2) pushPart(out, "keep", "\n");
+          else { pushPart(out, "collapse", "\n"); counts.collapse++; }
+        } else {
+          run = 0;
+          pushPart(out, "keep", ch);
+        }
+      }
+      return out;
+    }
+
+    function splitTrimEdges(text, counts) {
+      const out = [];
+      const lead = text.match(/^[ \t]+/);
+      let body = text;
+      if (lead) {
+        pushPart(out, "edge", lead[0]); counts.edge += lead[0].length;
+        body = body.slice(lead[0].length);
+      }
+      const tail = body.match(/\n+$/);
+      if (tail) {
+        pushPart(out, "keep", body.slice(0, -tail[0].length));
+        pushPart(out, "edge", tail[0]); counts.edge += tail[0].length;
+      } else if (body) {
+        pushPart(out, "keep", body);
+      }
+      return out.length ? out : [{ type: "keep", text: "" }];
+    }
+
+    function cleanFromParts(parts, options) {
+      let out = "";
+      for (const p of parts) {
+        if (p.type === "keep") out += p.text;
+        else if (p.type === "nbsp" && options.nbsp) out += " ";
+        else if (p.type === "smart" && options.smart) out += SMART_MAP[p.text] || "";
+        else if (p.type === "separator") out += p.text === "\u2029" ? "\n\n" : "\n";
+      }
+      return out;
+    }
+
+    function analyzeAndClean(raw, options) {
+      const counts = {
+        invisible: 0, metadata: 0, nbsp: 0, smart: 0, trim: 0,
+        collapse: 0, separator: 0, edge: 0, inputChars: raw.length
+      };
+      let parts = [{ type: "keep", text: options.nfc && raw.normalize ? raw.normalize("NFC") : raw }];
+
+      parts = mapKeepParts(parts, (text) => splitLineBreaks(text, counts));
+      parts = mapKeepParts(parts, (text) => splitMetadata(text, counts, options.metadata));
+      parts = mapKeepParts(parts, (text) => splitCharPasses(text, counts, options));
+      parts = mapKeepParts(parts, (text) => splitTrimLineEnds(text, counts, options.trimLines));
+      parts = mapKeepParts(parts, (text) => splitCollapse(text, counts, options.collapse));
+      parts = mapKeepParts(parts, (text) => splitTrimEdges(text, counts));
+
+      const text = cleanFromParts(parts, options);
+      counts.outputChars = text.length;
+      counts.removed = Math.max(0, counts.inputChars - counts.outputChars);
+      counts.metadataBlocks = counts.metadata;
+      return { text, parts, counts };
+    }
+
+    function partsToHtml(parts) {
+      if (!parts.length) return "";
+      return parts.map((p) => {
+        const body = Array.from(p.text).map((ch) => escapeHtml(displayChar(ch))).join("");
+        if (p.type === "keep") return body;
+        const cls = LEGEND_CLASS[p.type] || "rm-invisible";
+        const title = (p.text.length === 1 ? charLabel(p.text) : p.text.length + " chars") +
+          (p.type === "smart" && SMART_MAP[p.text[0]] ? " → " + SMART_MAP[p.text[0]] : "");
+        return '<mark class="' + cls + '" title="' + escapeHtml(title) + '">' + body + "</mark>";
+      }).join("");
+    }
+
+    function renderLegend(counts) {
+      const items = LEGEND_ORDER.filter((k) => counts[k] > 0).map((k) =>
+        '<span class="legend-item"><span class="legend-swatch ' + LEGEND_CLASS[k] + '"></span>' +
+        t("leg" + k.charAt(0).toUpperCase() + k.slice(1)) + " (" + counts[k] + ")</span>"
+      );
+      legendGrid.innerHTML = items.length
+        ? items.join("")
+        : '<span class="legend-empty">' + t("legEmpty") + "</span>";
+    }
+
+    function renderOptionsBar() {
+      optionsBar.innerHTML = OPTION_DEFS.map((d) =>
+        '<label><input type="checkbox" data-opt="' + d.id + '"' + (opts[d.id] ? " checked" : "") + "> " +
+        t(d.key) + "</label>"
+      ).join("");
+    }
+
+    function applyI18n() {
+      document.documentElement.lang = lang;
+      document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.getAttribute("data-i18n")); });
+      document.querySelectorAll("[data-i18n-title]").forEach((el) => { el.title = t(el.getAttribute("data-i18n-title")); });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => { el.placeholder = t(el.getAttribute("data-i18n-placeholder")); });
+      renderOptionsBar();
+      refreshOutputMeta();
+    }
+
+    function refreshOutputMeta() {
+      const text = outputEl.value;
+      const lines = text ? text.split("\n").length : 0;
+      statsEl.textContent = text.length + " " + t("reportChars") + " · " + lines + " " + t("reportLines");
+      if (outHintEl) {
+        outHintEl.textContent = outputDirty ? t("paneOutEdited") : t("paneOutHint");
+        outHintEl.classList.toggle("edited", outputDirty);
+      }
+    }
+
+    function persistOutput() {
+      try {
+        localStorage.setItem(STORAGE.output, outputEl.value);
+        localStorage.setItem(STORAGE.outputDirty, outputDirty ? "1" : "0");
+      } catch (e) {}
+    }
+
+    function update() {
+      const { text, parts, counts } = analyzeAndClean(inputEl.value, opts);
+      if (!outputDirty) outputEl.value = text;
+
+      const showHighlight = opts.highlight && inputEl.value.length > 0;
+      diffWrap.classList.toggle("hidden", !showHighlight);
+      legendEl.classList.toggle("hidden", !showHighlight);
+      if (showHighlight) {
+        const hasMarks = parts.some((p) => p.type !== "keep");
+        diffView.innerHTML = hasMarks ? partsToHtml(parts) : escapeHtml(t("diffEmpty"));
+        renderLegend(counts);
+      }
+
+      refreshOutputMeta();
+      reportEl.innerHTML =
+        '<span><strong class="removed">' + counts.removed + "</strong> " + t("reportRemoved") + "</span>" +
+        '<span><strong>' + counts.invisible + "</strong> " + t("reportInvisible") + "</span>" +
+        '<span><strong>' + counts.metadata + "</strong> " + t("reportMetadata") + "</span>";
+
+      try { localStorage.setItem(STORAGE.input, inputEl.value); } catch (e) {}
+      if (!outputDirty) persistOutput();
+    }
+
+    function persistOpts() {
+      try { localStorage.setItem(STORAGE.opts, JSON.stringify(opts)); } catch (e) {}
+    }
+
+    const ACTIONS = {
+      copy: () => { if (outputEl.value) copyText(outputEl.value); },
+      replace: () => { inputEl.value = outputEl.value; outputDirty = false; update(); inputEl.focus(); },
+      clear: () => { inputEl.value = ""; outputDirty = false; update(); toast(t("cleared")); inputEl.focus(); },
+      sample: () => { inputEl.value = t("sampleText"); outputDirty = false; update(); },
+      "theme-toggle": () => {
+        const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", next);
+        try { localStorage.setItem(STORAGE.theme, next); } catch (e) {}
+      }
+    };
+
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-action]");
+      if (btn && ACTIONS[btn.getAttribute("data-action")]) ACTIONS[btn.getAttribute("data-action")]();
+    });
+
+    inputEl.addEventListener("input", () => { outputDirty = false; update(); });
+    outputEl.addEventListener("input", () => { outputDirty = true; refreshOutputMeta(); persistOutput(); });
+    inputEl.addEventListener("scroll", () => { diffView.scrollTop = inputEl.scrollTop; });
+
+    optionsBar.addEventListener("change", (e) => {
+      const cb = e.target.closest("[data-opt]");
+      if (!cb) return;
+      opts[cb.getAttribute("data-opt")] = cb.checked;
+      persistOpts();
+      update();
+    });
+
+    document.getElementById("langSelect").addEventListener("change", (e) => {
+      lang = I18N[e.target.value] ? e.target.value : "pt";
+      try { localStorage.setItem(STORAGE.lang, lang); } catch (e) {}
+      applyI18n();
+      update();
+    });
+
+    (function setupSplitter() {
+      const splitter = document.getElementById("splitter");
+      const main = document.querySelector(".main");
+      const left = document.getElementById("input-pane");
+      let dragging = false;
+      splitter.addEventListener("pointerdown", (e) => {
+        dragging = true; splitter.classList.add("dragging"); splitter.setPointerCapture(e.pointerId);
+      });
+      splitter.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        const rect = main.getBoundingClientRect(), min = 140;
+        const w = Math.max(min, Math.min(rect.width - min - 6, e.clientX - rect.left));
+        left.style.flex = "0 0 " + w + "px";
+      });
+      const stop = (e) => {
+        if (!dragging) return;
+        dragging = false; splitter.classList.remove("dragging");
+        try { splitter.releasePointerCapture(e.pointerId); } catch (x) {}
+      };
+      splitter.addEventListener("pointerup", stop);
+      splitter.addEventListener("pointercancel", stop);
+    })();
+
+    (function setupDropZone() {
+      const pane = document.getElementById("input-pane");
+      const zone = document.getElementById("drop-zone");
+      const hasFiles = (e) => e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], "Files") !== -1;
+      ["dragenter", "dragover"].forEach((ev) => pane.addEventListener(ev, (e) => {
+        if (!hasFiles(e)) return;
+        e.preventDefault(); zone.classList.add("show");
+      }));
+      pane.addEventListener("dragleave", (e) => {
+        if (e.relatedTarget && pane.contains(e.relatedTarget)) return;
+        zone.classList.remove("show");
+      });
+      pane.addEventListener("drop", (e) => {
+        if (!hasFiles(e)) return;
+        e.preventDefault(); zone.classList.remove("show");
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => { inputEl.value = String(reader.result || ""); outputDirty = false; update(); };
+        reader.readAsText(file);
+      });
+    })();
+
+    (function init() {
+      try {
+        const savedOpts = localStorage.getItem(STORAGE.opts);
+        if (savedOpts) Object.assign(opts, JSON.parse(savedOpts));
+      } catch (e) {}
+      try {
+        const savedLang = localStorage.getItem(STORAGE.lang);
+        if (savedLang && I18N[savedLang]) lang = savedLang;
+        else {
+          const browser = (navigator.language || "pt").slice(0, 2);
+          lang = I18N[browser] ? browser : "pt";
+        }
+      } catch (e) {}
+      document.getElementById("langSelect").value = lang;
+      document.documentElement.setAttribute("data-theme", localStorage.getItem(STORAGE.theme) || "light");
+      applyI18n();
+      try {
+        const savedInput = localStorage.getItem(STORAGE.input);
+        if (savedInput) inputEl.value = savedInput;
+        outputDirty = localStorage.getItem(STORAGE.outputDirty) === "1";
+        const savedOutput = localStorage.getItem(STORAGE.output);
+        if (outputDirty && savedOutput != null) outputEl.value = savedOutput;
+      } catch (e) {}
+      update();
+    })();
+  })();
+  </script>
+</body>
+</html>

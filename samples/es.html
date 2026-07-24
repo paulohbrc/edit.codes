@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EDIT.CODES — Playground HTML en vivo</title>
+
+  <!--
+  ============================================================
+    ¡HOLA! Estás leyendo el CÓDIGO FUENTE (este panel izquierdo).
+    La PÁGINA RENDERIZADA aparece a la derecha al pulsar PREVIEW.
+
+    Una página = tres partes, todo en este único archivo:
+      • HTML  = estructura  (lo que lees ahora)
+      • CSS   = aspecto     (dentro del <style> abajo)
+      • JS    = comportamiento (dentro del <script> al final)
+
+    Primera edición en 10 segundos:
+      1. Busca la palabra  ->  EDIT.CODES
+      2. Escribe otra cosa en su lugar
+      3. Pulsa PREVIEW y mira el título cambiar a la derecha.
+  ============================================================
+  -->
+
+  <style>
+    /* ---------- Base ---------- */
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      color: #e5e7eb;
+      background: #070b14;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ============================================================
+       HERO  —  the ONLY animated area of the page. It reacts to your
+       mouse: a spotlight follows the cursor and the title shines
+       wherever you point. It also drifts on its own when idle.
+       (Interaction is wired up in the <script> at the bottom.)
+       ============================================================ */
+    .hero {
+      --mx: 50%;   /* cursor X inside the hero (updated by JS) */
+      --my: 38%;   /* cursor Y inside the hero (updated by JS) */
+      --px: 0px;   /* parallax offset X */
+      --py: 0px;   /* parallax offset Y */
+      position: relative;
+      overflow: hidden;                 /* keeps the moving glow inside the hero */
+      min-height: 48vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 64px 20px 44px;
+      background: #0a0f1c;
+      border-bottom: 1px solid #111a2e;
+      cursor: crosshair;
+    }
+
+    /* Layer 1 — drifting aurora blobs. Parallax-shifted by the cursor. */
+    .hero::before {
+      content: ''; position: absolute; inset: -40%; z-index: 0;
+      background:
+        radial-gradient(circle at 28% 30%, rgba(34,197,94,.55), transparent 46%),
+        radial-gradient(circle at 74% 42%, rgba(16,185,129,.45), transparent 46%),
+        radial-gradient(circle at 50% 84%, rgba(22,101,52,.55), transparent 50%);
+      filter: blur(10px);
+      transform: translate(var(--px), var(--py));
+      animation: aurora 14s ease-in-out infinite alternate;
+      transition: transform .25s ease-out;
+    }
+    @keyframes aurora {
+      0%   { transform: translate(calc(var(--px) - 4%), calc(var(--py) - 3%)) rotate(0deg)  scale(1.05); }
+      50%  { transform: translate(calc(var(--px) + 4%), calc(var(--py) + 4%)) rotate(7deg)  scale(1.22); }
+      100% { transform: translate(calc(var(--px) + 5%), calc(var(--py) - 4%)) rotate(-5deg) scale(1.10); }
+    }
+
+    /* Layer 2 — the spotlight that FOLLOWS the mouse. */
+    .hero::after {
+      content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(280px circle at var(--mx) var(--my), rgba(134,239,172,.30), transparent 70%),
+        repeating-linear-gradient(-12deg, transparent, transparent 30px, rgba(148,163,184,.05) 30px, rgba(148,163,184,.05) 31px);
+      transition: background-position .1s linear;
+    }
+    .hero > * { position: relative; z-index: 1; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; letter-spacing: .24em; text-transform: uppercase;
+      color: #86efac; margin-bottom: 18px;
+      padding: 6px 14px; border-radius: 999px;
+      border: 1px solid rgba(134,239,172,.3);
+      background: rgba(6,20,12,.55);
+      backdrop-filter: blur(4px);
+    }
+    .hero-badge .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #22c55e; box-shadow: 0 0 10px 1px rgba(34,197,94,.9);
+    }
+    /* Title: still by default, but it SHINES where the cursor points.
+       The white radial highlight tracks --mx/--my (set by JS). */
+    .hero h1 {
+      font-size: clamp(2.6rem, 9vw, 4.8rem);
+      margin: 0; letter-spacing: .1em; font-weight: 800;
+      background:
+        radial-gradient(200px circle at var(--mx) var(--my), #ffffff 0%, rgba(255,255,255,.25) 45%, transparent 70%),
+        linear-gradient(180deg, #d1fae5 0%, #6ee7b7 55%, #22c55e 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      filter: drop-shadow(0 0 26px rgba(34,197,94,.35));
+      transition: filter .2s ease;
+    }
+    .hero:hover h1 { filter: drop-shadow(0 0 40px rgba(52,211,153,.6)); }
+    .hero .rule {
+      width: 96px; height: 3px; margin: 18px 0 0; border-radius: 999px;
+      background: linear-gradient(90deg, transparent, #22c55e, transparent);
+    }
+    .hero p { margin: 22px 0 0; color: #cbd5e1; max-width: 34rem; font-size: 1.08rem; }
+    .hero .hero-hint { margin-top: 8px; color: #64748b; font-size: .92rem; }
+
+    /* ============================================================
+       PASTE POINTER  —  red, pointing LEFT toward the editor panel.
+       (The editable code lives on the left, so the arrows point <<<<.)
+       ============================================================ */
+    .paste-here {
+      display: flex; align-items: center; gap: 14px;
+      max-width: 760px; margin: -22px auto 8px; position: relative; z-index: 2;
+      padding: 15px 22px; border-radius: 12px;
+      background: #450a0a;
+      border: 2px dashed #ef4444;
+      color: #fca5a5; font-weight: 800; letter-spacing: .03em;
+      font-size: clamp(.95rem, 2.4vw, 1.12rem);
+      box-shadow: 0 12px 34px rgba(127,29,29,.35);
+      animation: pasteGlow 1.5s ease-in-out infinite;
+    }
+    .paste-here .arrows { color: #ef4444; font-size: 1.35em; letter-spacing: -.05em; animation: slideLeft 1.2s ease-in-out infinite; }
+    @keyframes pasteGlow {
+      0%, 100% { box-shadow: 0 12px 34px rgba(127,29,29,.35), 0 0 0 0 rgba(239,68,68,.35); }
+      50%      { box-shadow: 0 12px 34px rgba(127,29,29,.35), 0 0 0 7px rgba(239,68,68,0); }
+    }
+    @keyframes slideLeft { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-6px); } }
+
+    /* ---------- Page layout ---------- */
+    .wrap { max-width: 760px; margin: 0 auto; padding: 20px 20px 56px; }
+
+    /* Section header (eyebrow + title) — groups content so it doesn't read as loose buttons */
+    .section { margin: 40px 0 0; }
+    .section:first-of-type { margin-top: 32px; }
+    .eyebrow {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 11px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase;
+      color: #6ee7b7; margin: 0 0 4px;
+    }
+    .eyebrow::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(110,231,183,.4), transparent); }
+    .section > h2 { margin: 6px 0 16px; font-size: 1.5rem; color: #f8fafc; font-weight: 700; }
+
+    /* ---------- Numbered steps (the "how it works" list) ---------- */
+    .steps { display: grid; gap: 12px; }
+    .step {
+      display: flex; gap: 16px; align-items: flex-start;
+      padding: 18px 20px; border-radius: 14px;
+      border: 1px solid #1e293b;
+      background: linear-gradient(180deg, rgba(17,24,39,.9), rgba(11,17,32,.9));
+    }
+    .step .num {
+      flex: 0 0 auto; width: 34px; height: 34px; border-radius: 10px;
+      display: grid; place-items: center; font-weight: 800; font-size: 1rem;
+      color: #052e16; background: #34d399; box-shadow: 0 4px 12px rgba(16,185,129,.35);
+    }
+    .step h3 { margin: 3px 0 4px; font-size: 1.05rem; color: #f1f5f9; }
+    .step p { margin: 0; color: #cbd5e1; font-size: .96rem; }
+
+    /* ---------- Shared inline code ---------- */
+    code {
+      background: #0f172a; padding: 2px 7px; border-radius: 5px;
+      font-size: .85em; color: #86efac; font-weight: 600;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    /* ============================================================
+       INTERACTIVE LAB  —  instruction + the live banner, grouped
+       together as ONE experiment (not two random cards).
+       ============================================================ */
+    .lab {
+      border: 1px solid #14532d; border-radius: 18px; overflow: hidden;
+      background: rgba(5,25,15,.55);
+    }
+    .lab-head { padding: 20px 22px 16px; border-bottom: 1px dashed rgba(52,211,153,.3); }
+    .lab-head h3 { margin: 0 0 6px; font-size: 1.1rem; color: #ecfdf5; }
+    .lab-head p { margin: 0; color: #bbf7d0; font-size: .96rem; }
+    .lab-head .swap {
+      display: inline-block; margin-top: 12px; padding: 8px 12px; border-radius: 8px;
+      background: rgba(0,0,0,.3); font-size: .9rem; color: #d1fae5;
+    }
+    .lab-body { padding: 22px; }
+
+    /* --- The color banner itself (the thing you flip) --- */
+    .color-banner {
+      padding: 26px 22px; border-radius: 14px; text-align: center;
+      border: 3px solid transparent; box-shadow: 0 12px 40px rgba(0,0,0,.35);
+    }
+    .color-banner .banner-label {
+      display: inline-block; font-size: 11px; font-weight: 800;
+      letter-spacing: .2em; text-transform: uppercase;
+      padding: 5px 12px; border-radius: 999px; margin-bottom: 12px;
+    }
+    .color-banner .banner-text { margin: 0; font-size: clamp(1.1rem, 2.8vw, 1.35rem); font-weight: 800; line-height: 1.4; }
+    .color-banner .banner-sub  { margin: 12px 0 0; font-size: .92rem; font-weight: 600; opacity: .92; }
+
+    /* GREEN version (showing now) */
+    .banner-green { background: linear-gradient(135deg, #14532d 0%, #166534 45%, #22c55e 100%); border-color: #86efac; }
+    .banner-green .banner-label { background: #052e16; color: #86efac; }
+    .banner-green .banner-text  { color: #f0fdf4; }
+    .banner-green .banner-sub   { color: #dcfce7; }
+
+    /* RED version (swap the class to banner-red to use this) */
+    .banner-red { background: linear-gradient(135deg, #7f1d1d 0%, #b91c1c 45%, #ef4444 100%); border-color: #fca5a5; }
+    .banner-red .banner-label { background: #450a0a; color: #fecaca; }
+    .banner-red .banner-text  { color: #fff1f2; }
+    .banner-red .banner-sub   { color: #fee2e2; }
+
+    /* ---------- Live JS proof ---------- */
+    .live-bar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 14px;
+      margin-top: 16px; padding: 18px 20px; border-radius: 14px;
+      border: 1px solid #14532d; background: #052e16;
+    }
+    #demoBtn {
+      cursor: pointer; font-weight: 700; border: none; border-radius: 9px;
+      padding: 11px 18px; background: #16a34a; color: #ecfdf5;
+      transition: filter .15s, transform .12s;
+    }
+    #demoBtn:hover  { filter: brightness(1.12); transform: translateY(-1px); }
+    #demoBtn:active { transform: translateY(0); }
+    #demoOut { margin: 0; font-weight: 600; color: #86efac; min-height: 1.3em; }
+    .pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 10px 1px rgba(34,197,94,.8); }
+
+    /* ---------- Footer notices (distinct from the content cards) ---------- */
+    .footnotes { display: grid; gap: 12px; margin-top: 22px; }
+    .notice {
+      display: flex; gap: 14px; align-items: flex-start;
+      padding: 16px 18px; border-radius: 12px; font-size: .95rem;
+    }
+    .notice .ico { font-size: 1.3rem; line-height: 1.4; flex: 0 0 auto; }
+    .notice p { margin: 0; }
+    .notice.safe { border: 1px solid #7f1d1d; background: rgba(28,16,16,.7); color: #fecaca; }
+    .notice.md   { border: 1px solid #5b21b6; background: rgba(26,16,48,.7); color: #ddd6fe; }
+    .notice.md a { color: #c4b5fd; font-weight: 700; }
+    .notice strong { color: #fff; }
+
+    /* ---------- Thanks / social ---------- */
+    .edc-thanks { margin: 3em 0 .5em; text-align: center; color: #e5e7eb; }
+    .edc-thanks-rule { border: none; border-top: 1px solid #1f2937; margin: 1.6em 0; }
+    .edc-thanks-title { font-size: 1.2em; font-weight: 700; line-height: 1.4; margin: .6em 0 .35em; color: #f8fafc; }
+    .edc-thanks-sub { font-size: 1em; font-weight: 500; margin: .25em 0 .9em; color: #cbd5e1; }
+    .edc-thanks-follow { font-size: .78em; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; margin: 0 0 .9em; color: #64748b; }
+    .edc-social { display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 .5em; }
+    .edc-social-btn {
+      width: 42px; height: 42px; border-radius: 10px;
+      display: inline-flex; align-items: center; justify-content: center;
+      text-decoration: none; color: #fff !important;
+      transition: transform .15s, filter .15s;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    .edc-social-btn:hover { transform: translateY(-3px); filter: brightness(1.1); }
+    .edc-social-btn svg { width: 19px; height: 19px; fill: currentColor; display: block; }
+    .edc-social-btn.x  { background: #111827; }
+    .edc-social-btn.ig { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+    .edc-social-btn.li { background: #0a66c2; }
+    .edc-social-btn.gh { background: #484f58; }
+
+    /* Respect users who prefer no motion */
+    @media (prefers-reduced-motion: reduce) {
+      .hero::before, .paste-here, .paste-here .arrows { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="hero-badge"><span class="dot"></span>Playground online</div>
+    <h1>EDIT.CODES</h1>
+    <div class="rule"></div>
+    <p>Edita el código a la izquierda, pulsa <strong>PREVIEW</strong> y míralo cobrar vida a la derecha.</p>
+    <p class="hero-hint">HTML + CSS + JavaScript en un archivo. Sin instalar, sin build.</p>
+  </header>
+
+  <!-- Puntero rojo: el código editable está a la IZQUIERDA, por eso las flechas apuntan ahí -->
+  <p class="paste-here" role="note">
+    <span class="arrows">&laquo;&laquo;&laquo;</span>
+    PEGA O ARRASTRA TU CÓDIGO EN EL EDITOR
+  </p>
+
+  <main class="wrap">
+
+    <!-- ============ CÓMO FUNCIONA ============ -->
+    <section class="section">
+      <p class="eyebrow">Cómo funciona</p>
+      <h2>Tres pasos, un archivo</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="num">1</div>
+          <div>
+            <h3>Pega tu página</h3>
+            <p>Suelta el HTML de un solo archivo que te dio una IA — estructura, estilo y script juntos. Ese es el formato que entregan, y entra directo aquí.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <div>
+            <h3>Edita y previsualiza</h3>
+            <p>Cambia lo que quieras a la izquierda y pulsa <code>PREVIEW</code> — o activa <code>Live Preview</code> para ver cada tecla en tiempo real.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <div>
+            <h3>Exporta y guárdalo</h3>
+            <p>¿Te gusta? Exporta el archivo y ábrelo offline cuando quieras. Sin cuentas, sin herramientas extra, sin instalar nada.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PRUÉBALO: lab interactivo ============ -->
+    <section class="section">
+      <p class="eyebrow">Pruébalo tú</p>
+      <h2>Cambia este banner con una palabra</h2>
+
+      <!--
+      ============================================================
+        EXPERIMENTO DE COLOR — cambia SOLO el nombre de clase abajo:
+            class="banner-green"   ->   class="banner-red"
+        Luego pulsa PREVIEW y todo el banner se pone rojo.
+      ============================================================
+      -->
+      <div class="lab">
+        <div class="lab-head">
+          <h3>Tu primera edición de verdad</h3>
+          <p>En el código, encuentra el banner de abajo y cambia su clase de color. Nada más — solo una palabra.</p>
+          <span class="swap">Cambia <code>banner-green</code> &nbsp;→&nbsp; <code>banner-red</code></span>
+        </div>
+        <div class="lab-body">
+          <div class="color-banner banner-green" id="color-banner">
+            <div class="banner-label">Experimento de color</div>
+            <p class="banner-text">Ahora mismo este banner está VERDE.</p>
+            <p class="banner-sub">Haz el cambio de arriba, pulsa PREVIEW y míralo volverse rojo.</p>
+          </div>
+        </div>
+      </div>
+      <!-- ==================== fin EXPERIMENTO DE COLOR ==================== -->
+    </section>
+
+    <!-- ============ PRUEBA DE QUE ESTÁ VIVO ============ -->
+    <section class="section">
+      <p class="eyebrow">De verdad está corriendo</p>
+      <h2>No es una captura — es una página en vivo</h2>
+      <div class="live-bar">
+        <span class="pulse-dot" aria-hidden="true"></span>
+        <button id="demoBtn" type="button">Clic — el JS está corriendo</button>
+        <p id="demoOut">Esperando tu primer clic…</p>
+      </div>
+    </section>
+
+    <!-- ============ BUENO SABER ============ -->
+    <section class="section">
+      <p class="eyebrow">Bueno saber</p>
+      <div class="footnotes">
+        <div class="notice safe">
+          <span class="ico" aria-hidden="true">*</span>
+          <p><strong>Seguro por design.</strong> El preview ejecuta tu código en un sandbox y bloquea la red — pero solo pega scripts que entiendas. Buen hábito en todas partes.</p>
+        </div>
+        <div class="notice md">
+          <span class="ico" aria-hidden="true">MD</span>
+          <p><strong>¿Prefieres Markdown?</strong> También hicimos un editor completo de <code>.md</code> — preview en vivo, export limpio para IA, EN / PT / ES. <a href="https://edit.codes/md/" target="_blank" rel="noopener noreferrer">Abrir edit.codes/md →</a></p>
+        </div>
+      </div>
+    </section>
+
+    <div class="edc-thanks" id="edc-follow-block">
+      <hr class="edc-thanks-rule" />
+      <p class="edc-thanks-title">Agradecer es el arte de atraer cosas buenas.</p>
+      <p class="edc-thanks-sub">Si esta herramienta te ayudó a construir algo, eso vale mucho.</p>
+      <p class="edc-thanks-follow">Sigue</p>
+      <div class="edc-social">
+        <a class="edc-social-btn x" href="https://x.com/paulohbrc" target="_blank" rel="noopener noreferrer" title="X · @paulohbrc" aria-label="X">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.727-8.835L1.254 2.25H8.08l4.253 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+        </a>
+        <a class="edc-social-btn ig" href="https://instagram.com/paulohbrc" target="_blank" rel="noopener noreferrer" title="Instagram · @paulohbrc" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        </a>
+        <a class="edc-social-btn li" href="https://www.linkedin.com/in/paulohbrc" target="_blank" rel="noopener noreferrer" title="LinkedIn · /in/paulohbrc" aria-label="LinkedIn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 1.881 4.267 4.373v6.368zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        </a>
+        <a class="edc-social-btn gh" href="https://github.com/paulohbrc" target="_blank" rel="noopener noreferrer" title="GitHub · @paulohbrc" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+        </a>
+      </div>
+      <hr class="edc-thanks-rule" />
+    </div>
+
+  </main>
+
+  <script>
+    // ---- Interactive hero: the glow + title shine follow your mouse ----
+    var hero = document.querySelector('.hero');
+    if (hero) {
+      hero.addEventListener('pointermove', function (e) {
+        var r = hero.getBoundingClientRect();
+        var x = (e.clientX - r.left) / r.width;   // 0 .. 1 across the hero
+        var y = (e.clientY - r.top) / r.height;   // 0 .. 1 down the hero
+        hero.style.setProperty('--mx', (x * 100).toFixed(1) + '%');
+        hero.style.setProperty('--my', (y * 100).toFixed(1) + '%');
+        // gentle parallax on the aurora (opposite direction feels deeper)
+        hero.style.setProperty('--px', ((0.5 - x) * 34).toFixed(1) + 'px');
+        hero.style.setProperty('--py', ((0.5 - y) * 34).toFixed(1) + 'px');
+      });
+      hero.addEventListener('pointerleave', function () {
+        // ease back to center when the mouse leaves
+        hero.style.setProperty('--mx', '50%');
+        hero.style.setProperty('--my', '38%');
+        hero.style.setProperty('--px', '0px');
+        hero.style.setProperty('--py', '0px');
+      });
+    }
+
+    // ---- Live click counter — proof this page is really running ----
+    var btn = document.getElementById('demoBtn');
+    var out = document.getElementById('demoOut');
+    var n = 0;
+
+    if (btn && out) {
+      btn.addEventListener('click', function () {
+        n += 1;
+        out.textContent = 'Hiciste clic ' + n + (n === 1 ? ' vez' : ' veces') + ' — ¡la página está viva!';
+      });
+    }
+  </script>
+
+</body>
+</html>
