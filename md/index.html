@@ -2,8 +2,91 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8" />
-  <title>Edit Codes - MD Pro · edit.codes/md</title>
+  <title>Markdown editor online — edit &amp; preview Markdown · edit.codes/md</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Edit and preview Markdown online free. Live Markdown viewer for .md files — tables, code, TOC, KaTeX, Mermaid. Editar y visualizar Markdown · Editor Markdown online. Privacy-first, no server." />
+  <meta name="keywords" content="markdown editor online, edit markdown, markdown preview, view markdown, live preview markdown, edit .md online, editor markdown online, editar markdown, visualizar markdown, preview markdown, editar y visualizar markdown, editor de markdown" />
+  <link rel="canonical" href="https://edit.codes/md/" />
+  <script type="application/ld+json" id="faq-schema">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Can I edit and preview Markdown online for free?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. edit.codes/md is a free online Markdown editor to edit Markdown and view a live formatted preview of your .md file — no signup, no install. Paste or drop a .md and see tables, code blocks, lists and headings instantly."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I edit Markdown and view the formatted result?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Open edit.codes/md, type or paste Markdown in the Editor pane (or drop a .md file). The Preview pane updates as you edit so you can edit Markdown and visualize the rendered document side by side."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does the file stay real Markdown that AI tools can re-read?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. The philosophy is one .md, two audiences: humans see a rich preview here; the saved file remains native Markdown. Copy MD or Save .md keeps clean source for ChatGPT, Claude and other AIs."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the message block and why is it different from other Markdown editors?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The green :::message block lets you mark a part of an AI conversation, your own prompt, or the instructions that applied at that moment. Use Paste message or wrap a selection. It stands out in the live preview for humans, while the file stays plain Markdown the AI can re-read — something generic online Markdown editors do not offer for AI chat workflows."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What Markdown features can I preview online?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "GFM essentials: headings with on-screen table of contents, tables, task lists, fenced code with copy buttons, blockquotes and links, plus the custom message box for AI conversation notes. Optional code highlighting, math (KaTeX) and diagrams (Mermaid) load only when you enable them."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is my Markdown private when I edit .md online?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Processing is 100% in your browser. Nothing you type is sent to our server. Autosave uses localStorage on your device. Ideal for editing Markdown online without uploading documents to a cloud service."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I open, save or copy a .md file?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Use Open or drag-and-drop a .md onto the editor. Save .md downloads the native Markdown source. Copy MD puts the same clean text on the clipboard for pasting into an AI chat or another app."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I print Markdown or export to PDF with proper margins?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Click PDF (or print) to print the formatted preview or Save as PDF in the browser dialog. Print uses real page margins, hides the on-screen table of contents and UI chrome, and keeps the document content — including message blocks — so you get a clean paper or PDF output, not a screenshot of the editor."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What makes edit.codes/md different from other online Markdown editors?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Built for AI-assisted work: the file stays a real .md the AI re-reads; message blocks mark your prompts or instructions from a conversation; one-click print/PDF of the formatted view with margins and without the auto index; and everything runs privately in the browser — no account, no upload."
+        }
+      }
+    ]
+  }
+  </script>
 
   <!--
     Edit Codes - MD Pro — international, client-side Markdown editor (edit.codes/md).
@@ -308,11 +391,55 @@
     footer .edc-social-btn.li { background: #0a66c2; }
     footer .edc-social-btn.gh { background: #484f58; }
     footer .source-link { color: #93c5fd; }
+    footer button.faq-link {
+      background: none; border: none; color: inherit; cursor: pointer;
+      font: inherit; padding: 0; text-decoration: underline; opacity: 0.9;
+    }
+    footer button.faq-link:hover { opacity: 1; }
 
     /* Modal */
     #msg-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
     .modal-content { background: var(--paper-bg); color: var(--paper-fg); padding: 24px; border-radius: 8px; width: 500px; max-width: 90%; }
     .modal-content textarea { height: 150px; width: 100%; border: 1px solid var(--pane-border); padding: 12px; margin-bottom: 16px; background: var(--editor-bg); color: var(--editor-fg); }
+
+    #faq-modal {
+      display: none; position: fixed; inset: 0; z-index: 1800;
+      background: rgba(0,0,0,0.65); align-items: center; justify-content: center; padding: 16px;
+    }
+    #faq-modal.open { display: flex; }
+    #faq-modal .faq-card {
+      background: var(--bg); color: var(--fg); border-radius: 10px;
+      max-width: 640px; width: 100%; max-height: min(88vh, 740px); overflow: auto;
+      padding: 20px 20px 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+      border: 1px solid var(--pane-border);
+    }
+    #faq-modal .faq-card h2 { margin: 0 0 6px; font-size: 18px; }
+    #faq-modal .faq-intro { margin: 0 0 14px; font-size: 13px; line-height: 1.5; color: var(--muted); }
+    #faq-modal .faq-list details {
+      border: 1px solid var(--pane-border); border-radius: 8px; margin: 0 0 8px;
+      background: var(--editor-bg);
+    }
+    #faq-modal .faq-list summary {
+      cursor: pointer; padding: 12px 14px; font-weight: 600; font-size: 13.5px;
+      line-height: 1.4; color: var(--fg); list-style: none;
+    }
+    #faq-modal .faq-list summary::-webkit-details-marker { display: none; }
+    #faq-modal .faq-list summary::before {
+      content: "▸"; display: inline-block; width: 1.1em; color: var(--accent); font-weight: 700;
+    }
+    #faq-modal .faq-list details[open] summary::before { content: "▾"; }
+    #faq-modal .faq-list details[open] summary { border-bottom: 1px solid var(--pane-border); }
+    #faq-modal .faq-a {
+      margin: 0; padding: 12px 14px 14px; font-size: 13px; line-height: 1.55; color: var(--muted);
+    }
+    #faq-modal .faq-actions {
+      display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;
+      position: sticky; bottom: 0; background: var(--bg); padding-top: 8px;
+    }
+    #faq-modal .faq-actions button {
+      border: none; border-radius: 6px; padding: 9px 14px; cursor: pointer;
+      font-size: 13px; font-weight: 600; background: var(--accent); color: var(--accent-fg);
+    }
 
     /* Toast */
     #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #111827; color: #fff; padding: 10px 18px; border-radius: 6px; font-size: 13px; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 2000; }
@@ -428,7 +555,11 @@
 
     /* Print / PDF — expand past the fixed 100dvh shell so all pages render */
     @media print {
-      @page { size: A4; margin: 16mm; }
+      /* Page margins for every printed page (printer / Save as PDF) */
+      @page {
+        size: A4;
+        margin: 20mm 18mm 22mm 18mm;
+      }
       html {
         height: auto !important; max-height: none !important;
         overflow: visible !important; background: #fff !important;
@@ -442,7 +573,7 @@
         background: #fff !important; color: #000 !important;
       }
       header, .feature-bar, .toolbar, #editor-pane, .pane-header, footer,
-      .fs-close, .splitter, #drop-zone, #msg-modal, #toast, #md-file-input {
+      .fs-close, .splitter, #drop-zone, #msg-modal, #faq-modal, #toast, #md-file-input {
         display: none !important;
       }
       #fullscreen-overlay {
@@ -464,10 +595,15 @@
       #preview {
         box-shadow: none !important; border-radius: 0 !important;
         max-width: none !important; width: 100% !important;
-        margin: 0 !important; padding: 0 !important;
+        box-sizing: border-box !important;
+        /* Always keep content inset (helps when print dialog sets margins to None) */
+        margin: 0 auto !important; padding: 10mm 12mm 12mm !important;
         background: #fff !important; color: #000 !important;
         overflow: visible !important; position: static !important;
+        font-size: 11.5pt !important; line-height: 1.5 !important;
       }
+      /* Auto TOC is for on-screen navigation only — never print/PDF */
+      #preview .toc-container { display: none !important; }
       #preview .edc-type-banner { break-inside: avoid; }
       #preview .code-wrapper, #preview .edc-message, #preview table, #preview .mermaid {
         break-inside: avoid;
@@ -580,6 +716,10 @@
     <span data-i18n="footer">Processed locally in your browser. Nothing is sent to any server.</span>
     <span style="opacity:.4;"> · </span>
     <a class="source-link" href="https://web3.archi" target="_blank" rel="noopener noreferrer" data-i18n="source">Open source</a>
+    <span style="opacity:.4;"> · </span>
+    <a class="source-link" href="../" data-i18n="footerHtml">HTML editor</a>
+    <span style="opacity:.4;"> · </span>
+    <button type="button" class="faq-link" data-action="faq-open" data-i18n="footerFaq">FAQ</button>
     <span class="footer-social" aria-label="Social">
       <a class="edc-social-btn x" href="https://x.com/paulohbrc" target="_blank" rel="noopener noreferrer" title="X · @paulohbrc" aria-label="X">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.727-8.835L1.254 2.25H8.08l4.253 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
@@ -609,6 +749,54 @@
       <div style="display:flex;justify-content:flex-end;gap:8px;">
         <button data-action="modal-cancel" style="padding:8px 16px;cursor:pointer;" data-i18n="cancel">Cancel</button>
         <button data-action="modal-add" style="padding:8px 16px;background:#059669;color:#fff;border:none;cursor:pointer;" data-i18n="add">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="faq-modal" role="dialog" aria-modal="true" aria-labelledby="faqTitle">
+    <div class="faq-card">
+      <h2 id="faqTitle" data-i18n="faqTitle">FAQ — edit &amp; preview Markdown</h2>
+      <p class="faq-intro" data-i18n="faqIntro">Markdown editor for AI workflows: live preview, message blocks for prompts and instructions, print/PDF of the formatted document, clean .md the AI can re-read. Privacy-first — nothing is sent to a server.</p>
+      <div class="faq-list" itemscope itemtype="https://schema.org/FAQPage">
+        <details itemscope itemprop="mainEntity" itemtype="https://schema.org/Question" open>
+          <summary itemprop="name" data-i18n="faqQ1">Can I edit and preview Markdown online for free?</summary>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p class="faq-a" itemprop="text" data-i18n="faqA1">Yes. edit.codes/md is a free online Markdown editor to edit Markdown and view a live formatted preview of your .md file — no signup, no install. Paste or drop a .md and see tables, code blocks, lists and headings instantly.</p></div>
+        </details>
+        <details itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary itemprop="name" data-i18n="faqQ2">How do I edit Markdown and view the formatted result?</summary>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p class="faq-a" itemprop="text" data-i18n="faqA2">Open edit.codes/md, type or paste Markdown in the Editor pane (or drop a .md file). The Preview pane updates as you edit so you can edit Markdown and visualize the rendered document side by side.</p></div>
+        </details>
+        <details itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary itemprop="name" data-i18n="faqQ3">Does the file stay real Markdown that AI tools can re-read?</summary>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p class="faq-a" itemprop="text" data-i18n="faqA3">Yes. The philosophy is one .md, two audiences: humans see a rich preview here; the saved file remains native Markdown. Copy MD or Save .md keeps clean source for ChatGPT, Claude and other AIs.</p></div>
+        </details>
+        <details itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary itemprop="name" data-i18n="faqQ4">What is the message block and why is it different from other Markdown editors?</summary>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p class="faq-a" itemprop="text" data-i18n="faqA4">The green :::message block lets you mark a part of an AI conversation, your own prompt, or the instructions that applied at that moment. Use Paste message or wrap a selection. It stands out in the live preview for humans, while the file stays plain Markdown the AI can re-read — something generic online Markdown editors do not offer for AI chat workflows.</p></div>
+        </details>
+        <details itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary itemprop="name" data-i18n="faqQ5">What Markdown features can I preview online?</summary>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p class="faq-a" itemprop="text" data-i18n="faqA5">GFM essentials: headings with on-screen table of contents, tables, task lists, fenced code with copy buttons, blockquotes and links, plus the custom message box for AI conversation notes. Optional code highlighting, math (KaTeX) and diagrams (Mermaid) load only when you enable them.</p></div>
+        </details>
+        <details itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary itemprop="name" data-i18n="faqQ6">Is my Markdown private when I edit .md online?</summary>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p class="faq-a" itemprop="text" data-i18n="faqA6">Yes. Processing is 100% in your browser. Nothing you type is sent to our server. Autosave uses localStorage on your device. Ideal for editing Markdown online without uploading documents to a cloud service.</p></div>
+        </details>
+        <details itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary itemprop="name" data-i18n="faqQ7">How do I open, save or copy a .md file?</summary>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p class="faq-a" itemprop="text" data-i18n="faqA7">Use Open or drag-and-drop a .md onto the editor. Save .md downloads the native Markdown source. Copy MD puts the same clean text on the clipboard for pasting into an AI chat or another app.</p></div>
+        </details>
+        <details itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary itemprop="name" data-i18n="faqQ8">Can I print Markdown or export to PDF with proper margins?</summary>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p class="faq-a" itemprop="text" data-i18n="faqA8">Yes. Click PDF (or print) to print the formatted preview or Save as PDF in the browser dialog. Print uses real page margins, hides the on-screen table of contents and UI chrome, and keeps the document content — including message blocks — so you get a clean paper or PDF output, not a screenshot of the editor.</p></div>
+        </details>
+        <details itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary itemprop="name" data-i18n="faqQ9">What makes edit.codes/md different from other online Markdown editors?</summary>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p class="faq-a" itemprop="text" data-i18n="faqA9">Built for AI-assisted work: the file stays a real .md the AI re-reads; message blocks mark your prompts or instructions from a conversation; one-click print/PDF of the formatted view with margins and without the auto index; and everything runs privately in the browser — no account, no upload.</p></div>
+        </details>
+      </div>
+      <div class="faq-actions">
+        <button type="button" data-action="faq-close" data-i18n="faqClose">Close</button>
       </div>
     </div>
   </div>
@@ -666,6 +854,31 @@
         thanksTitle: "Gratitude is the art of attracting good things.",
         thanksSub: "If this project helped you in any way,",
         thanksFollow: "Follow",
+        footerFaq: "FAQ",
+        footerHtml: "HTML editor",
+        faqTitle: "FAQ — edit & preview Markdown",
+        faqIntro: "Markdown editor for AI workflows: live preview, message blocks for prompts and instructions, print/PDF of the formatted document, clean .md the AI can re-read. Privacy-first — nothing is sent to a server.",
+        faqClose: "Close",
+        metaDesc: "Edit and preview Markdown online free. Message blocks for AI prompts, print/PDF with margins, live .md viewer. Privacy-first Markdown editor — no server.",
+        pageTitle: "Markdown editor online — edit & preview Markdown · edit.codes/md",
+        faqQ1: "Can I edit and preview Markdown online for free?",
+        faqA1: "Yes. edit.codes/md is a free online Markdown editor to edit Markdown and view a live formatted preview of your .md file — no signup, no install. Paste or drop a .md and see tables, code blocks, lists and headings instantly.",
+        faqQ2: "How do I edit Markdown and view the formatted result?",
+        faqA2: "Open edit.codes/md, type or paste Markdown in the Editor pane (or drop a .md file). The Preview pane updates as you edit so you can edit Markdown and visualize the rendered document side by side.",
+        faqQ3: "Does the file stay real Markdown that AI tools can re-read?",
+        faqA3: "Yes. The philosophy is one .md, two audiences: humans see a rich preview here; the saved file remains native Markdown. Copy MD or Save .md keeps clean source for ChatGPT, Claude and other AIs.",
+        faqQ4: "What is the message block and why is it different from other Markdown editors?",
+        faqA4: "The green :::message block lets you mark a part of an AI conversation, your own prompt, or the instructions that applied at that moment. Use Paste message or wrap a selection. It stands out in the live preview for humans, while the file stays plain Markdown the AI can re-read — something generic online Markdown editors do not offer for AI chat workflows.",
+        faqQ5: "What Markdown features can I preview online?",
+        faqA5: "GFM essentials: headings with on-screen table of contents, tables, task lists, fenced code with copy buttons, blockquotes and links, plus the custom message box for AI conversation notes. Optional code highlighting, math (KaTeX) and diagrams (Mermaid) load only when you enable them.",
+        faqQ6: "Is my Markdown private when I edit .md online?",
+        faqA6: "Yes. Processing is 100% in your browser. Nothing you type is sent to our server. Autosave uses localStorage on your device. Ideal for editing Markdown online without uploading documents to a cloud service.",
+        faqQ7: "How do I open, save or copy a .md file?",
+        faqA7: "Use Open or drag-and-drop a .md onto the editor. Save .md downloads the native Markdown source. Copy MD puts the same clean text on the clipboard for pasting into an AI chat or another app.",
+        faqQ8: "Can I print Markdown or export to PDF with proper margins?",
+        faqA8: "Yes. Click PDF (or print) to print the formatted preview or Save as PDF in the browser dialog. Print uses real page margins, hides the on-screen table of contents and UI chrome, and keeps the document content — including message blocks — so you get a clean paper or PDF output, not a screenshot of the editor.",
+        faqQ9: "What makes edit.codes/md different from other online Markdown editors?",
+        faqA9: "Built for AI-assisted work: the file stays a real .md the AI re-reads; message blocks mark your prompts or instructions from a conversation; one-click print/PDF of the formatted view with margins and without the auto index; and everything runs privately in the browser — no account, no upload.",
         demo: "# Edit Codes - MD Pro — how to use\n\nPaste here the **.md** the AI gave you — or **drag the .md file** onto this area. On the right you see it fully formatted, with the visual features turned on.\n\n![edc-type-hint](edc-type-hint)\n\n## What is different here\n\nThis editor turns certain .md symbols into **visual functions**, just for you to see: tables, code blocks with a copy button, an automatic table of contents, and the green message box. But the file **stays a real .md** — when you send it back to the AI, it reads the plain text normally. The visuals are for humans; the content stays useful for the AI afterwards.\n\n> Here you only **see** what the AI wrote. Any HTML or script you paste **shows up as text** — nothing runs and nothing disappears. Only the editor's own visual features are applied. And nothing you type leaves your computer.\n\n:::message\nThe green box is for you to **mark a message you sent yourself** to the AI, keeping it apart from the rest of the chat.\n:::\n\n## Save and resume later\n\n1. Click **💾 Save .md** to download the clean file.\n2. To continue, **drag the .md back here** (or open the file and copy its content). The text appears without sending the file from your computer anywhere.\n\n```js\n// code blocks get their own copy button\nexample()\n```\n\n---\n\n*Use this space to paste your own AI-generated code. Be careful with code from others.*\n"
       },
       pt: {
@@ -692,6 +905,31 @@
         thanksTitle: "Agradecer é a arte de atrair coisas boas.",
         thanksSub: "Se este projeto te ajudou de alguma forma,",
         thanksFollow: "Siga",
+        footerFaq: "FAQ",
+        footerHtml: "Editor HTML",
+        faqTitle: "FAQ — editar e visualizar Markdown",
+        faqIntro: "Editor Markdown para fluxos com IA: preview ao vivo, blocos de mensagem para prompts e instruções, imprimir/PDF do documento formatado, .md limpo que a IA relê. Privacidade primeiro — nada é enviado a servidor.",
+        faqClose: "Fechar",
+        metaDesc: "Editar e visualizar Markdown online grátis. Blocos de mensagem para prompts de IA, imprimir/PDF com margens, preview de .md. Editor Markdown com privacidade — sem servidor.",
+        pageTitle: "Editor Markdown online — editar e visualizar Markdown · edit.codes/md",
+        faqQ1: "Posso editar e visualizar Markdown online de graça?",
+        faqA1: "Sim. edit.codes/md é um editor de Markdown online grátis para editar Markdown e ver o preview formatado do seu .md — sem cadastro e sem instalar. Cole ou arraste um .md e veja tabelas, blocos de código, listas e títulos na hora.",
+        faqQ2: "Como editar Markdown e ver o resultado formatado?",
+        faqA2: "Abra edit.codes/md, digite ou cole Markdown no painel Editor (ou solte um arquivo .md). O painel Visualização atualiza enquanto você edita, para editar Markdown e visualizar o documento renderizado lado a lado.",
+        faqQ3: "O arquivo continua Markdown real que a IA consegue reler?",
+        faqA3: "Sim. A filosofia é um .md, dois públicos: humanos veem o preview rico aqui; o arquivo salvo permanece Markdown nativo. Copiar MD ou Guardar .md mantém a fonte limpa para ChatGPT, Claude e outras IAs.",
+        faqQ4: "O que é o bloco de mensagem e por que é diferente de outros editores Markdown?",
+        faqA4: "A caixa verde :::message serve para marcar trechos da conversa com a IA, o seu próprio prompt ou as instruções daquele momento. Use Colar mensagem ou transforme a seleção. No preview ela se destaca para humanos; no arquivo continua Markdown simples que a IA relê — algo que editores genéricos de Markdown online não oferecem para fluxos de chat com IA.",
+        faqQ5: "Quais recursos de Markdown posso visualizar online?",
+        faqA5: "Essenciais GFM: títulos com índice na tela, tabelas, listas de tarefas, blocos de código com botão copiar, citações e links, além da caixa de mensagem para anotar conversas com IA. Realce de código, fórmulas (KaTeX) e diagramas (Mermaid) são opcionais e só carregam se você ativar.",
+        faqQ6: "Meu Markdown fica privado ao editar .md online?",
+        faqA6: "Sim. Tudo processa 100% no navegador. Nada que você digitar é enviado ao nosso servidor. O autosave usa localStorage no seu dispositivo. Ideal para editar Markdown online sem subir documentos a um serviço na nuvem.",
+        faqQ7: "Como abrir, guardar ou copiar um arquivo .md?",
+        faqA7: "Use Abra ou arraste um .md para o editor. Guardar .md baixa a fonte Markdown nativa. Copiar MD coloca o mesmo texto limpo na área de transferência para colar num chat de IA ou outro app.",
+        faqQ8: "Posso imprimir Markdown ou exportar para PDF com margens corretas?",
+        faqA8: "Sim. Clique em PDF (ou imprima) para imprimir o preview formatado ou Salvar como PDF no diálogo do navegador. A impressão usa margens reais de página, omite o índice automático da tela e a interface, e mantém o conteúdo do documento — inclusive os blocos de mensagem — para um PDF ou papel limpo, não um print da tela do editor.",
+        faqQ9: "O que diferencia o edit.codes/md de outros editores Markdown online?",
+        faqA9: "Feito para trabalho com IA: o arquivo continua um .md real que a IA relê; blocos de mensagem marcam prompts ou instruções da conversa; imprimir/PDF do preview formatado com margens e sem o índice automático; e tudo roda no navegador com privacidade — sem conta e sem upload.",
         demo: "# Edit Codes - MD Pro — como usar\n\nCole aqui o **.md** que a IA te entregou — ou **arraste o arquivo .md** para esta área. À direita você vê tudo já formatado, com os recursos visuais ativados.\n\n![edc-type-hint](edc-type-hint)\n\n## O que muda aqui\n\nEste editor transforma certos símbolos do .md em **funções visuais**, só para você ver: tabelas, blocos de código com botão de copiar, índice automático e a caixa verde de mensagem. Mas o arquivo **continua sendo um .md de verdade** — quando você o envia de volta para a IA, ela lê o texto normalmente. O visual é para humanos; o conteúdo segue útil para a IA depois.\n\n> Aqui você só **vê** o que a IA escreveu. Qualquer HTML ou script colado **aparece como texto** — nada é executado e nada some. Só os recursos visuais do próprio editor são aplicados. E nada que você digitar sai do seu computador.\n\n:::message\nA caixa verde é para você **marcar uma mensagem que você mesmo enviou** para a IA, separando-a do resto da conversa.\n:::\n\n## Salvar e retomar depois\n\n1. Clique em **💾 Guardar .md** para baixar o arquivo limpo.\n2. Para continuar, **arraste o .md de volta para cá** (ou abra o arquivo e copie o conteúdo). O texto aparece sem enviar o arquivo do seu computador para lugar nenhum.\n\n```js\n// blocos de código ganham um botão de copiar\nexemplo()\n```\n\n---\n\n*Utilize esse espaço para colar seus próprios códigos gerados pela AI, tenha cuidado com códigos alheios.*\n"
       },
       es: {
@@ -718,6 +956,31 @@
         thanksTitle: "Agradecer es el arte de atraer cosas buenas.",
         thanksSub: "Si este proyecto te ayudó de alguna forma,",
         thanksFollow: "Sigue",
+        footerFaq: "FAQ",
+        footerHtml: "Editor HTML",
+        faqTitle: "FAQ — editar y visualizar Markdown",
+        faqIntro: "Editor Markdown para flujos con IA: vista previa en vivo, bloques de mensaje para prompts e instrucciones, imprimir/PDF del documento formateado, .md limpio que la IA relee. Privacidad primero — nada se envía a un servidor.",
+        faqClose: "Cerrar",
+        metaDesc: "Editar y visualizar Markdown online gratis. Bloques de mensaje para prompts de IA, imprimir/PDF con márgenes, vista previa de .md. Editor Markdown con privacidad — sin servidor.",
+        pageTitle: "Editor Markdown online — editar y visualizar Markdown · edit.codes/md",
+        faqQ1: "¿Puedo editar y visualizar Markdown online gratis?",
+        faqA1: "Sí. edit.codes/md es un editor de Markdown online gratis para editar Markdown y ver la vista previa formateada de tu .md — sin registro y sin instalar. Pega o arrastra un .md y ve tablas, bloques de código, listas y títulos al instante.",
+        faqQ2: "¿Cómo editar Markdown y ver el resultado formateado?",
+        faqA2: "Abre edit.codes/md, escribe o pega Markdown en el panel Editor (o suelta un archivo .md). El panel Vista previa se actualiza mientras editas, para editar Markdown y visualizar el documento renderizado lado a lado.",
+        faqQ3: "¿El archivo sigue siendo Markdown real que la IA puede releer?",
+        faqA3: "Sí. La filosofía es un .md, dos públicos: los humanos ven la vista previa rica aquí; el archivo guardado sigue siendo Markdown nativo. Copiar MD o Guardar .md mantiene la fuente limpia para ChatGPT, Claude y otras IAs.",
+        faqQ4: "¿Qué es el bloque de mensaje y por qué es distinto de otros editores Markdown?",
+        faqA4: "La caja verde :::message sirve para marcar un tramo de la conversación con la IA, tu propio prompt o las instrucciones de ese momento. Usa Pegar mensaje o convierte la selección. En la vista previa destaca para humanos; en el archivo sigue siendo Markdown plano que la IA relee — algo que los editores genéricos de Markdown online no ofrecen para flujos de chat con IA.",
+        faqQ5: "¿Qué funciones de Markdown puedo previsualizar online?",
+        faqA5: "Esenciales GFM: encabezados con índice en pantalla, tablas, listas de tareas, bloques de código con botón copiar, citas y enlaces, más la caja de mensaje para anotar conversas con la IA. Resaltado de código, fórmulas (KaTeX) y diagramas (Mermaid) son opcionales y solo se cargan si los activas.",
+        faqQ6: "¿Mi Markdown es privado al editar .md online?",
+        faqA6: "Sí. Todo se procesa 100% en el navegador. Nada de lo que escribas se envía a nuestro servidor. El guardado automático usa localStorage en tu dispositivo. Ideal para editar Markdown online sin subir documentos a un servicio en la nube.",
+        faqQ7: "¿Cómo abrir, guardar o copiar un archivo .md?",
+        faqA7: "Usa Abrir o arrastra un .md al editor. Guardar .md descarga la fuente Markdown nativa. Copiar MD pone el mismo texto limpio en el portapapeles para pegarlo en un chat de IA u otra app.",
+        faqQ8: "¿Puedo imprimir Markdown o exportar a PDF con márgenes correctos?",
+        faqA8: "Sí. Haz clic en PDF (o imprime) para imprimir la vista previa formateada o Guardar como PDF en el diálogo del navegador. La impresión usa márgenes reales de página, oculta el índice automático de la pantalla y la interfaz, y conserva el contenido del documento — incluidos los bloques de mensaje — para un PDF o papel limpio, no una captura del editor.",
+        faqQ9: "¿Qué diferencia a edit.codes/md de otros editores Markdown online?",
+        faqA9: "Hecho para trabajo con IA: el archivo sigue siendo un .md real que la IA relee; los bloques de mensaje marcan prompts o instrucciones de la conversación; imprimir/PDF de la vista formateada con márgenes y sin el índice automático; y todo corre en el navegador con privacidad — sin cuenta y sin subir archivos.",
         demo: "# Edit Codes - MD Pro — cómo usar\n\nPega aquí el **.md** que te dio la IA — o **arrastra el archivo .md** a esta área. A la derecha lo ves ya formateado, con las funciones visuales activadas.\n\n![edc-type-hint](edc-type-hint)\n\n## Qué cambia aquí\n\nEste editor convierte ciertos símbolos del .md en **funciones visuales**, solo para que tú las veas: tablas, bloques de código con botón de copiar, índice automático y la caja verde de mensaje. Pero el archivo **sigue siendo un .md de verdad** — cuando lo envías de vuelta a la IA, ella lee el texto con normalidad. Lo visual es para humanos; el contenido sigue siendo útil para la IA después.\n\n> Aquí solo **ves** lo que la IA escribió. Cualquier HTML o script que pegues **aparece como texto** — nada se ejecuta y nada desaparece. Solo se aplican las funciones visuales del propio editor. Y nada de lo que escribas sale de tu computadora.\n\n:::message\nLa caja verde es para que **marques un mensaje que tú mismo enviaste** a la IA, separándolo del resto de la conversación.\n:::\n\n## Guardar y retomar después\n\n1. Haz clic en **💾 Guardar .md** para descargar el archivo limpio.\n2. Para continuar, **arrastra el .md aquí de nuevo** (o abre el archivo y copia su contenido). El texto aparece sin enviar el archivo de tu computadora a ningún lugar.\n\n```js\n// los bloques de código reciben un botón de copiar\nejemplo()\n```\n\n---\n\n*Utiliza este espacio para pegar tus propios códigos generados por la IA, ten cuidado con códigos ajenos.*\n"
       }
     };
@@ -1313,7 +1576,36 @@
       document.documentElement.lang = lang;
       document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.getAttribute("data-i18n")); });
       document.querySelectorAll("[data-i18n-title]").forEach(el => { el.title = t(el.getAttribute("data-i18n-title")); });
+      document.title = t("pageTitle");
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) metaDesc.setAttribute("content", t("metaDesc"));
+      updateFaqSchema();
       updateCounts();
+    }
+    function updateFaqSchema() {
+      const el = document.getElementById("faq-schema");
+      if (!el) return;
+      const entities = [];
+      for (let i = 1; i <= 9; i++) {
+        entities.push({
+          "@type": "Question",
+          name: t("faqQ" + i),
+          acceptedAnswer: { "@type": "Answer", text: t("faqA" + i) }
+        });
+      }
+      el.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: entities
+      });
+    }
+    function openFaq() {
+      const m = document.getElementById("faq-modal");
+      if (m) m.classList.add("open");
+    }
+    function closeFaq() {
+      const m = document.getElementById("faq-modal");
+      if (m) m.classList.remove("open");
     }
     function setLang(l) {
       lang = I18N[l] ? l : CONFIG.defaultLang;
@@ -1422,7 +1714,8 @@
       fullscreen: () => openFullscreen(), "fullscreen-close": () => closeFullscreen(),
       "open-md": () => openMdFilePicker(),
       "theme-toggle": () => setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"),
-      "modal-cancel": () => closeModal(), "modal-add": () => addFromModal()
+      "modal-cancel": () => closeModal(), "modal-add": () => addFromModal(),
+      "faq-open": () => openFaq(), "faq-close": () => closeFaq()
     };
     document.addEventListener("click", (e) => {
       const el = e.target.closest("[data-action]");
@@ -1438,11 +1731,16 @@
       });
     });
     modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+    const faqModalEl = document.getElementById("faq-modal");
+    if (faqModalEl) {
+      faqModalEl.addEventListener("click", (e) => { if (e.target === faqModalEl) closeFaq(); });
+    }
 
     document.addEventListener("keydown", (e) => {
       // Escape closes the fullscreen overlay first, then the modal.
       if (e.key === "Escape") {
         if (document.getElementById("fullscreen-overlay").classList.contains("open")) { e.preventDefault(); closeFullscreen(); return; }
+        if (faqModalEl && faqModalEl.classList.contains("open")) { e.preventDefault(); closeFaq(); return; }
         if (modal.style.display === "flex") { e.preventDefault(); closeModal(); return; }
       }
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
